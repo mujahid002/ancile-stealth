@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@scopelift/stealth-address-sdk": "^1.0.0-beta.2",
+    "dotenv": "^17.3.1",
+    "ethers": "^5.7.2",
+    "viem": "^2.46.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.2"
+  }
+}
