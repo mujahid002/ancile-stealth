@@ -1,0 +1,7 @@
+{
+  "evms": [{
+    "receiverAddress": "<DEPLOY_AncileStealthReceiver_AND_PASTE_ADDRESS_HERE>",
+    "chainSelectorName": "ethereum-testnet-sepolia-base-1",
+    "gasLimit": "500000"
+  }]
+}

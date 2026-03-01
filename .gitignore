@@ -1,0 +1,7 @@
+*.env
+*/.env
+
+/node_modules
+/p2p-workflow/node_modules
+/contracts/node_modules
+/scripts/node_modules
