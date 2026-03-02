@@ -3,7 +3,7 @@ import * as dotenv from "dotenv";
 import * as path from "path";
 
 // Load your staging environment variables
-dotenv.config({ path: path.resolve(__dirname, '.env.staging') });
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 const ERC6538_REGISTRY_ADDRESS = "0x6538E6bf4B0eBd30A8Ea093027Ac2422ce5d6538";
 
@@ -12,7 +12,7 @@ const REGISTRY_ABI = [
     "function stealthMetaAddressOf(address registrant, uint256 schemeId) external view returns (bytes memory)"
 ];
 
-async function verifyBobOnChain() {
+async function verifyBobOnChainRegistration() {
     const rpcUrl = process.env.BASE_SEPOLIA_RPC_URL!;
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
     
@@ -44,4 +44,4 @@ async function verifyBobOnChain() {
     }
 }
 
-verifyBobOnChain().catch(console.error);
+verifyBobOnChainRegistration().catch(console.error);
