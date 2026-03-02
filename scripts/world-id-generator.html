@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ancile Stealth: World ID Sample Proofs</title>
+    <script src="https://unpkg.com/@worldcoin/idkit-standalone/build/index.global.js"></script>
+    <style>
+        body { font-family: monospace; background: #111; color: #0f0; padding: 40px; }
+        button { padding: 15px 30px; background: #fff; color: #000; font-weight: bold; cursor: pointer; border: none; font-size: 16px; }
+        pre { background: #222; padding: 20px; border-radius: 8px; overflow-x: auto; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <h2>Ancile Stealth: Sample World ID Proof Generator</h2>
+
+    <button id="generate-btn">Generate Sample Proof</button>
+
+    <h3>Generated Payload (Copy this into your script!):</h3>
+    <pre id="output">Waiting for proof...</pre>
+
+    <script>
+        const button = document.getElementById('generate-btn');
+        const output = document.getElementById('output');
+
+        button.addEventListener('click', () => {
+            IDKit.init({
+                app_id: 'your_app_id_here',
+                action: 'your_action_here',
+                verification_level: 'orb',
+                
+                // When the simulator succeeds, it passes the ZK-proof here
+                onSuccess: result => {
+                    console.log("✅ Proof successfully generated!", result);
+                    output.textContent = JSON.stringify(result, null, 2);
+                },
+                onError: error => {
+                    console.error("❌ Error:", error);
+                    output.textContent = "Error: " + JSON.stringify(error, null, 2);
+                }
+            });
+
+            // Open the modal
+            IDKit.open();
+        });
+    </script>
+
+</body>
+</html>
