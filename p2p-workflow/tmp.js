@@ -78,123 +78,19 @@ var init_regex = __esm(() => {
   integerRegex = /^u?int(8|16|24|32|40|48|56|64|72|80|88|96|104|112|120|128|136|144|152|160|168|176|184|192|200|208|216|224|232|240|248|256)?$/;
   isTupleRegex = /^\(.+?\).*?$/;
 });
-function formatAbiParameter(abiParameter) {
-  let type = abiParameter.type;
-  if (tupleRegex.test(abiParameter.type) && "components" in abiParameter) {
-    type = "(";
-    const length = abiParameter.components.length;
-    for (let i2 = 0;i2 < length; i2++) {
-      const component = abiParameter.components[i2];
-      type += formatAbiParameter(component);
-      if (i2 < length - 1)
-        type += ", ";
-    }
-    const result = execTyped(tupleRegex, abiParameter.type);
-    type += `)${result?.array ?? ""}`;
-    return formatAbiParameter({
-      ...abiParameter,
-      type
-    });
-  }
-  if ("indexed" in abiParameter && abiParameter.indexed)
-    type = `${type} indexed`;
-  if (abiParameter.name)
-    return `${type} ${abiParameter.name}`;
-  return type;
-}
-var tupleRegex;
-var init_formatAbiParameter = __esm(() => {
-  init_regex();
-  tupleRegex = /^tuple(?<array>(\[(\d*)\])*)$/;
-});
-function formatAbiParameters(abiParameters) {
-  let params = "";
-  const length = abiParameters.length;
-  for (let i2 = 0;i2 < length; i2++) {
-    const abiParameter = abiParameters[i2];
-    params += formatAbiParameter(abiParameter);
-    if (i2 !== length - 1)
-      params += ", ";
-  }
-  return params;
-}
-var init_formatAbiParameters = __esm(() => {
-  init_formatAbiParameter();
-});
-function formatAbiItem(abiItem) {
-  if (abiItem.type === "function")
-    return `function ${abiItem.name}(${formatAbiParameters(abiItem.inputs)})${abiItem.stateMutability && abiItem.stateMutability !== "nonpayable" ? ` ${abiItem.stateMutability}` : ""}${abiItem.outputs?.length ? ` returns (${formatAbiParameters(abiItem.outputs)})` : ""}`;
-  if (abiItem.type === "event")
-    return `event ${abiItem.name}(${formatAbiParameters(abiItem.inputs)})`;
-  if (abiItem.type === "error")
-    return `error ${abiItem.name}(${formatAbiParameters(abiItem.inputs)})`;
-  if (abiItem.type === "constructor")
-    return `constructor(${formatAbiParameters(abiItem.inputs)})${abiItem.stateMutability === "payable" ? " payable" : ""}`;
-  if (abiItem.type === "fallback")
-    return `fallback() external${abiItem.stateMutability === "payable" ? " payable" : ""}`;
-  return "receive() external payable";
-}
-var init_formatAbiItem = __esm(() => {
-  init_formatAbiParameters();
-});
-function isErrorSignature(signature) {
-  return errorSignatureRegex.test(signature);
-}
-function execErrorSignature(signature) {
-  return execTyped(errorSignatureRegex, signature);
-}
-function isEventSignature(signature) {
-  return eventSignatureRegex.test(signature);
-}
-function execEventSignature(signature) {
-  return execTyped(eventSignatureRegex, signature);
-}
-function isFunctionSignature(signature) {
-  return functionSignatureRegex.test(signature);
-}
-function execFunctionSignature(signature) {
-  return execTyped(functionSignatureRegex, signature);
-}
 function isStructSignature(signature) {
   return structSignatureRegex.test(signature);
 }
 function execStructSignature(signature) {
   return execTyped(structSignatureRegex, signature);
 }
-function isConstructorSignature(signature) {
-  return constructorSignatureRegex.test(signature);
-}
-function execConstructorSignature(signature) {
-  return execTyped(constructorSignatureRegex, signature);
-}
-function isFallbackSignature(signature) {
-  return fallbackSignatureRegex.test(signature);
-}
-function execFallbackSignature(signature) {
-  return execTyped(fallbackSignatureRegex, signature);
-}
-function isReceiveSignature(signature) {
-  return receiveSignatureRegex.test(signature);
-}
-var errorSignatureRegex;
-var eventSignatureRegex;
-var functionSignatureRegex;
 var structSignatureRegex;
-var constructorSignatureRegex;
-var fallbackSignatureRegex;
-var receiveSignatureRegex;
 var modifiers;
 var eventModifiers;
 var functionModifiers;
 var init_signatures = __esm(() => {
   init_regex();
-  errorSignatureRegex = /^error (?<name>[a-zA-Z$_][a-zA-Z0-9$_]*)\((?<parameters>.*?)\)$/;
-  eventSignatureRegex = /^event (?<name>[a-zA-Z$_][a-zA-Z0-9$_]*)\((?<parameters>.*?)\)$/;
-  functionSignatureRegex = /^function (?<name>[a-zA-Z$_][a-zA-Z0-9$_]*)\((?<parameters>.*?)\)(?: (?<scope>external|public{1}))?(?: (?<stateMutability>pure|view|nonpayable|payable{1}))?(?: returns\s?\((?<returns>.*?)\))?$/;
   structSignatureRegex = /^struct (?<name>[a-zA-Z$_][a-zA-Z0-9$_]*) \{(?<properties>.*?)\}$/;
-  constructorSignatureRegex = /^constructor\((?<parameters>.*?)\)(?:\s(?<stateMutability>payable{1}))?$/;
-  fallbackSignatureRegex = /^fallback\(\) external(?:\s(?<stateMutability>payable{1}))?$/;
-  receiveSignatureRegex = /^receive\(\) external payable$/;
   modifiers = new Set([
     "memory",
     "indexed",
@@ -241,6 +137,7 @@ var init_abiItem = __esm(() => {
     }
   };
 });
+var InvalidAbiParametersError;
 var InvalidParameterError;
 var SolidityProtectedKeywordError;
 var InvalidModifierError;
@@ -248,6 +145,20 @@ var InvalidFunctionModifierError;
 var InvalidAbiTypeParameterError;
 var init_abiParameter = __esm(() => {
   init_errors();
+  InvalidAbiParametersError = class InvalidAbiParametersError2 extends BaseError {
+    constructor({ params }) {
+      super("Failed to parse ABI parameters.", {
+        details: `parseAbiParameters(${JSON.stringify(params, null, 2)})`,
+        docsPath: "/api/human#parseabiparameters-1"
+      });
+      Object.defineProperty(this, "name", {
+        enumerable: true,
+        configurable: true,
+        writable: true,
+        value: "InvalidAbiParametersError"
+      });
+    }
+  };
   InvalidParameterError = class InvalidParameterError2 extends BaseError {
     constructor({ param }) {
       super("Invalid ABI parameter.", {
@@ -326,7 +237,6 @@ var init_abiParameter = __esm(() => {
   };
 });
 var InvalidSignatureError;
-var UnknownSignatureError;
 var InvalidStructSignatureError;
 var init_signature = __esm(() => {
   init_errors();
@@ -340,19 +250,6 @@ var init_signature = __esm(() => {
         configurable: true,
         writable: true,
         value: "InvalidSignatureError"
-      });
-    }
-  };
-  UnknownSignatureError = class UnknownSignatureError2 extends BaseError {
-    constructor({ signature }) {
-      super("Unknown signature.", {
-        details: signature
-      });
-      Object.defineProperty(this, "name", {
-        enumerable: true,
-        configurable: true,
-        writable: true,
-        value: "UnknownSignatureError"
       });
     }
   };
@@ -478,108 +375,6 @@ var init_cache = __esm(() => {
     ]
   ]);
 });
-function parseSignature(signature, structs = {}) {
-  if (isFunctionSignature(signature))
-    return parseFunctionSignature(signature, structs);
-  if (isEventSignature(signature))
-    return parseEventSignature(signature, structs);
-  if (isErrorSignature(signature))
-    return parseErrorSignature(signature, structs);
-  if (isConstructorSignature(signature))
-    return parseConstructorSignature(signature, structs);
-  if (isFallbackSignature(signature))
-    return parseFallbackSignature(signature);
-  if (isReceiveSignature(signature))
-    return {
-      type: "receive",
-      stateMutability: "payable"
-    };
-  throw new UnknownSignatureError({ signature });
-}
-function parseFunctionSignature(signature, structs = {}) {
-  const match = execFunctionSignature(signature);
-  if (!match)
-    throw new InvalidSignatureError({ signature, type: "function" });
-  const inputParams = splitParameters(match.parameters);
-  const inputs = [];
-  const inputLength = inputParams.length;
-  for (let i2 = 0;i2 < inputLength; i2++) {
-    inputs.push(parseAbiParameter(inputParams[i2], {
-      modifiers: functionModifiers,
-      structs,
-      type: "function"
-    }));
-  }
-  const outputs = [];
-  if (match.returns) {
-    const outputParams = splitParameters(match.returns);
-    const outputLength = outputParams.length;
-    for (let i2 = 0;i2 < outputLength; i2++) {
-      outputs.push(parseAbiParameter(outputParams[i2], {
-        modifiers: functionModifiers,
-        structs,
-        type: "function"
-      }));
-    }
-  }
-  return {
-    name: match.name,
-    type: "function",
-    stateMutability: match.stateMutability ?? "nonpayable",
-    inputs,
-    outputs
-  };
-}
-function parseEventSignature(signature, structs = {}) {
-  const match = execEventSignature(signature);
-  if (!match)
-    throw new InvalidSignatureError({ signature, type: "event" });
-  const params = splitParameters(match.parameters);
-  const abiParameters = [];
-  const length = params.length;
-  for (let i2 = 0;i2 < length; i2++)
-    abiParameters.push(parseAbiParameter(params[i2], {
-      modifiers: eventModifiers,
-      structs,
-      type: "event"
-    }));
-  return { name: match.name, type: "event", inputs: abiParameters };
-}
-function parseErrorSignature(signature, structs = {}) {
-  const match = execErrorSignature(signature);
-  if (!match)
-    throw new InvalidSignatureError({ signature, type: "error" });
-  const params = splitParameters(match.parameters);
-  const abiParameters = [];
-  const length = params.length;
-  for (let i2 = 0;i2 < length; i2++)
-    abiParameters.push(parseAbiParameter(params[i2], { structs, type: "error" }));
-  return { name: match.name, type: "error", inputs: abiParameters };
-}
-function parseConstructorSignature(signature, structs = {}) {
-  const match = execConstructorSignature(signature);
-  if (!match)
-    throw new InvalidSignatureError({ signature, type: "constructor" });
-  const params = splitParameters(match.parameters);
-  const abiParameters = [];
-  const length = params.length;
-  for (let i2 = 0;i2 < length; i2++)
-    abiParameters.push(parseAbiParameter(params[i2], { structs, type: "constructor" }));
-  return {
-    type: "constructor",
-    stateMutability: match.stateMutability ?? "nonpayable",
-    inputs: abiParameters
-  };
-}
-function parseFallbackSignature(signature) {
-  const match = execFallbackSignature(signature);
-  if (!match)
-    throw new InvalidSignatureError({ signature, type: "fallback" });
-  return {
-    type: "fallback",
-    stateMutability: match.stateMutability ?? "nonpayable"
-  };
-}
 function parseAbiParameter(param, options) {
   const parameterCacheKey = getParameterCacheKey(param, options?.type, options?.structs);
   if (parameterCache.has(parameterCacheKey))
@@ -677,7 +472,6 @@ var init_utils = __esm(() => {
   init_regex();
   init_abiItem();
   init_abiParameter();
-  init_signature();
   init_splitParameters();
   init_cache();
   init_signatures();
@@ -764,45 +558,41 @@ var init_structs = __esm(() => {
   init_utils();
   typeWithoutTupleRegex = /^(?<type>[a-zA-Z$_][a-zA-Z0-9$_]*)(?<array>(?:\[\d*?\])+?)?$/;
 });
-function parseAbi(signatures) {
-  const structs = parseStructs(signatures);
-  const abi = [];
-  const length = signatures.length;
-  for (let i2 = 0;i2 < length; i2++) {
-    const signature = signatures[i2];
-    if (isStructSignature(signature))
-      continue;
-    abi.push(parseSignature(signature, structs));
+function parseAbiParameters(params) {
+  const abiParameters = [];
+  if (typeof params === "string") {
+    const parameters = splitParameters(params);
+    const length = parameters.length;
+    for (let i2 = 0;i2 < length; i2++) {
+      abiParameters.push(parseAbiParameter(parameters[i2], { modifiers }));
+    }
+  } else {
+    const structs = parseStructs(params);
+    const length = params.length;
+    for (let i2 = 0;i2 < length; i2++) {
+      const signature = params[i2];
+      if (isStructSignature(signature))
+        continue;
+      const parameters = splitParameters(signature);
+      const length2 = parameters.length;
+      for (let k = 0;k < length2; k++) {
+        abiParameters.push(parseAbiParameter(parameters[k], { modifiers, structs }));
+      }
+    }
   }
-  return abi;
+  if (abiParameters.length === 0)
+    throw new InvalidAbiParametersError({ params });
+  return abiParameters;
 }
-var init_parseAbi = __esm(() => {
+var init_parseAbiParameters = __esm(() => {
+  init_abiParameter();
   init_signatures();
   init_structs();
   init_utils();
+  init_utils();
 });
 var init_exports = __esm(() => {
-  init_formatAbiItem();
-  init_parseAbi();
-});
-function formatAbiItem2(abiItem, { includeName = false } = {}) {
-  if (abiItem.type !== "function" && abiItem.type !== "event" && abiItem.type !== "error")
-    throw new InvalidDefinitionTypeError(abiItem.type);
-  return `${abiItem.name}(${formatAbiParams(abiItem.inputs, { includeName })})`;
-}
-function formatAbiParams(params, { includeName = false } = {}) {
-  if (!params)
-    return "";
-  return params.map((param) => formatAbiParam(param, { includeName })).join(includeName ? ", " : ",");
-}
-function formatAbiParam(param, { includeName }) {
-  if (param.type.startsWith("tuple")) {
-    return `(${formatAbiParams(param.components, { includeName })})${param.type.slice("tuple".length)}`;
-  }
-  return param.type + (includeName && param.name ? ` ${param.name}` : "");
-}
-var init_formatAbiItem2 = __esm(() => {
-  init_abi();
+  init_parseAbiParameters();
 });
 function isHex(value2, { strict = true } = {}) {
   if (!value2)
@@ -908,13 +698,9 @@ var init_base = __esm(() => {
 var AbiEncodingArrayLengthMismatchError;
 var AbiEncodingBytesSizeMismatchError;
 var AbiEncodingLengthMismatchError;
-var AbiFunctionNotFoundError;
-var AbiItemAmbiguityError;
 var InvalidAbiEncodingTypeError;
 var InvalidArrayError;
-var InvalidDefinitionTypeError;
 var init_abi = __esm(() => {
-  init_formatAbiItem2();
   init_size();
   init_base();
   AbiEncodingArrayLengthMismatchError = class AbiEncodingArrayLengthMismatchError2 extends BaseError2 {
@@ -942,32 +728,6 @@ var init_abi = __esm(() => {
 `), { name: "AbiEncodingLengthMismatchError" });
     }
   };
-  AbiFunctionNotFoundError = class AbiFunctionNotFoundError2 extends BaseError2 {
-    constructor(functionName, { docsPath } = {}) {
-      super([
-        `Function ${functionName ? `"${functionName}" ` : ""}not found on ABI.`,
-        "Make sure you are using the correct ABI and that the function exists on it."
-      ].join(`
-`), {
-        docsPath,
-        name: "AbiFunctionNotFoundError"
-      });
-    }
-  };
-  AbiItemAmbiguityError = class AbiItemAmbiguityError2 extends BaseError2 {
-    constructor(x, y) {
-      super("Found ambiguous types in overloaded ABI items.", {
-        metaMessages: [
-          `\`${x.type}\` in \`${formatAbiItem2(x.abiItem)}\`, and`,
-          `\`${y.type}\` in \`${formatAbiItem2(y.abiItem)}\``,
-          "",
-          "These types encode differently and cannot be distinguished at runtime.",
-          "Remove one of the ambiguous items in the ABI."
-        ],
-        name: "AbiItemAmbiguityError"
-      });
-    }
-  };
   InvalidAbiEncodingTypeError = class InvalidAbiEncodingTypeError2 extends BaseError2 {
     constructor(type, { docsPath }) {
       super([
@@ -983,15 +743,6 @@ var init_abi = __esm(() => {
 `), {
         name: "InvalidArrayError"
       });
-    }
-  };
-  InvalidDefinitionTypeError = class InvalidDefinitionTypeError2 extends BaseError2 {
-    constructor(type) {
-      super([
-        `"${type}" is not a valid definition type.`,
-        'Valid types: "function", "event", "error"'
-      ].join(`
-`), { name: "InvalidDefinitionTypeError" });
     }
   };
 });
@@ -1525,83 +1276,6 @@ var init_keccak256 = __esm(() => {
   init_toBytes();
   init_toHex();
 });
-function hashSignature(sig) {
-  return hash(sig);
-}
-var hash = (value2) => keccak256(toBytes(value2));
-var init_hashSignature = __esm(() => {
-  init_toBytes();
-  init_keccak256();
-});
-function normalizeSignature(signature) {
-  let active = true;
-  let current = "";
-  let level = 0;
-  let result = "";
-  let valid = false;
-  for (let i2 = 0;i2 < signature.length; i2++) {
-    const char = signature[i2];
-    if (["(", ")", ","].includes(char))
-      active = true;
-    if (char === "(")
-      level++;
-    if (char === ")")
-      level--;
-    if (!active)
-      continue;
-    if (level === 0) {
-      if (char === " " && ["event", "function", ""].includes(result))
-        result = "";
-      else {
-        result += char;
-        if (char === ")") {
-          valid = true;
-          break;
-        }
-      }
-      continue;
-    }
-    if (char === " ") {
-      if (signature[i2 - 1] !== "," && current !== "," && current !== ",(") {
-        current = "";
-        active = false;
-      }
-      continue;
-    }
-    result += char;
-    current += char;
-  }
-  if (!valid)
-    throw new BaseError2("Unable to normalize signature.");
-  return result;
-}
-var init_normalizeSignature = __esm(() => {
-  init_base();
-});
-var toSignature = (def) => {
-  const def_ = (() => {
-    if (typeof def === "string")
-      return def;
-    return formatAbiItem(def);
-  })();
-  return normalizeSignature(def_);
-};
-var init_toSignature = __esm(() => {
-  init_exports();
-  init_normalizeSignature();
-});
-function toSignatureHash(fn) {
-  return hashSignature(toSignature(fn));
-}
-var init_toSignatureHash = __esm(() => {
-  init_hashSignature();
-  init_toSignature();
-});
-var toEventSelector;
-var init_toEventSelector = __esm(() => {
-  init_toSignatureHash();
-  toEventSelector = toSignatureHash;
-});
 var InvalidAddressError;
 var init_address = __esm(() => {
   init_base();
@@ -1653,13 +1327,13 @@ function checksumAddress(address_, chainId) {
   if (checksumAddressCache.has(`${address_}.${chainId}`))
     return checksumAddressCache.get(`${address_}.${chainId}`);
   const hexAddress = chainId ? `${chainId}${address_.toLowerCase()}` : address_.substring(2).toLowerCase();
-  const hash2 = keccak256(stringToBytes(hexAddress), "bytes");
+  const hash = keccak256(stringToBytes(hexAddress), "bytes");
   const address = (chainId ? hexAddress.substring(`${chainId}0x`.length) : hexAddress).split("");
   for (let i2 = 0;i2 < 40; i2 += 2) {
-    if (hash2[i2 >> 1] >> 4 >= 8 && address[i2]) {
+    if (hash[i2 >> 1] >> 4 >= 8 && address[i2]) {
       address[i2] = address[i2].toUpperCase();
     }
-    if ((hash2[i2 >> 1] & 15) >= 8 && address[i2 + 1]) {
+    if ((hash[i2 >> 1] & 15) >= 8 && address[i2 + 1]) {
       address[i2 + 1] = address[i2 + 1].toUpperCase();
     }
   }
@@ -1988,169 +1662,6 @@ var init_encodeAbiParameters = __esm(() => {
   init_slice();
   init_toHex();
   init_regex2();
-});
-var toFunctionSelector = (fn) => slice(toSignatureHash(fn), 0, 4);
-var init_toFunctionSelector = __esm(() => {
-  init_slice();
-  init_toSignatureHash();
-});
-function getAbiItem(parameters) {
-  const { abi, args = [], name } = parameters;
-  const isSelector = isHex(name, { strict: false });
-  const abiItems = abi.filter((abiItem) => {
-    if (isSelector) {
-      if (abiItem.type === "function")
-        return toFunctionSelector(abiItem) === name;
-      if (abiItem.type === "event")
-        return toEventSelector(abiItem) === name;
-      return false;
-    }
-    return "name" in abiItem && abiItem.name === name;
-  });
-  if (abiItems.length === 0)
-    return;
-  if (abiItems.length === 1)
-    return abiItems[0];
-  let matchedAbiItem = undefined;
-  for (const abiItem of abiItems) {
-    if (!("inputs" in abiItem))
-      continue;
-    if (!args || args.length === 0) {
-      if (!abiItem.inputs || abiItem.inputs.length === 0)
-        return abiItem;
-      continue;
-    }
-    if (!abiItem.inputs)
-      continue;
-    if (abiItem.inputs.length === 0)
-      continue;
-    if (abiItem.inputs.length !== args.length)
-      continue;
-    const matched = args.every((arg, index) => {
-      const abiParameter = "inputs" in abiItem && abiItem.inputs[index];
-      if (!abiParameter)
-        return false;
-      return isArgOfType(arg, abiParameter);
-    });
-    if (matched) {
-      if (matchedAbiItem && "inputs" in matchedAbiItem && matchedAbiItem.inputs) {
-        const ambiguousTypes = getAmbiguousTypes(abiItem.inputs, matchedAbiItem.inputs, args);
-        if (ambiguousTypes)
-          throw new AbiItemAmbiguityError({
-            abiItem,
-            type: ambiguousTypes[0]
-          }, {
-            abiItem: matchedAbiItem,
-            type: ambiguousTypes[1]
-          });
-      }
-      matchedAbiItem = abiItem;
-    }
-  }
-  if (matchedAbiItem)
-    return matchedAbiItem;
-  return abiItems[0];
-}
-function isArgOfType(arg, abiParameter) {
-  const argType = typeof arg;
-  const abiParameterType = abiParameter.type;
-  switch (abiParameterType) {
-    case "address":
-      return isAddress(arg, { strict: false });
-    case "bool":
-      return argType === "boolean";
-    case "function":
-      return argType === "string";
-    case "string":
-      return argType === "string";
-    default: {
-      if (abiParameterType === "tuple" && "components" in abiParameter)
-        return Object.values(abiParameter.components).every((component, index) => {
-          return isArgOfType(Object.values(arg)[index], component);
-        });
-      if (/^u?int(8|16|24|32|40|48|56|64|72|80|88|96|104|112|120|128|136|144|152|160|168|176|184|192|200|208|216|224|232|240|248|256)?$/.test(abiParameterType))
-        return argType === "number" || argType === "bigint";
-      if (/^bytes([1-9]|1[0-9]|2[0-9]|3[0-2])?$/.test(abiParameterType))
-        return argType === "string" || arg instanceof Uint8Array;
-      if (/[a-z]+[1-9]{0,3}(\[[0-9]{0,}\])+$/.test(abiParameterType)) {
-        return Array.isArray(arg) && arg.every((x) => isArgOfType(x, {
-          ...abiParameter,
-          type: abiParameterType.replace(/(\[[0-9]{0,}\])$/, "")
-        }));
-      }
-      return false;
-    }
-  }
-}
-function getAmbiguousTypes(sourceParameters, targetParameters, args) {
-  for (const parameterIndex in sourceParameters) {
-    const sourceParameter = sourceParameters[parameterIndex];
-    const targetParameter = targetParameters[parameterIndex];
-    if (sourceParameter.type === "tuple" && targetParameter.type === "tuple" && "components" in sourceParameter && "components" in targetParameter)
-      return getAmbiguousTypes(sourceParameter.components, targetParameter.components, args[parameterIndex]);
-    const types4 = [sourceParameter.type, targetParameter.type];
-    const ambiguous = (() => {
-      if (types4.includes("address") && types4.includes("bytes20"))
-        return true;
-      if (types4.includes("address") && types4.includes("string"))
-        return isAddress(args[parameterIndex], { strict: false });
-      if (types4.includes("address") && types4.includes("bytes"))
-        return isAddress(args[parameterIndex], { strict: false });
-      return false;
-    })();
-    if (ambiguous)
-      return types4;
-  }
-  return;
-}
-var init_getAbiItem = __esm(() => {
-  init_abi();
-  init_isAddress();
-  init_toEventSelector();
-  init_toFunctionSelector();
-});
-function prepareEncodeFunctionData(parameters) {
-  const { abi, args, functionName } = parameters;
-  let abiItem = abi[0];
-  if (functionName) {
-    const item = getAbiItem({
-      abi,
-      args,
-      name: functionName
-    });
-    if (!item)
-      throw new AbiFunctionNotFoundError(functionName, { docsPath });
-    abiItem = item;
-  }
-  if (abiItem.type !== "function")
-    throw new AbiFunctionNotFoundError(undefined, { docsPath });
-  return {
-    abi: [abiItem],
-    functionName: toFunctionSelector(formatAbiItem2(abiItem))
-  };
-}
-var docsPath = "/docs/contract/encodeFunctionData";
-var init_prepareEncodeFunctionData = __esm(() => {
-  init_abi();
-  init_toFunctionSelector();
-  init_formatAbiItem2();
-  init_getAbiItem();
-});
-function encodeFunctionData(parameters) {
-  const { args } = parameters;
-  const { abi, functionName } = (() => {
-    if (parameters.abi.length === 1 && parameters.functionName?.startsWith("0x"))
-      return parameters;
-    return prepareEncodeFunctionData(parameters);
-  })();
-  const abiItem = abi[0];
-  const signature = functionName;
-  const data = "inputs" in abiItem && abiItem.inputs ? encodeAbiParameters(abiItem.inputs, args ?? []) : undefined;
-  return concatHex([signature, data ?? "0x"]);
-}
-var init_encodeFunctionData = __esm(() => {
-  init_encodeAbiParameters();
-  init_prepareEncodeFunctionData();
 });
 function isMessage(arg, schema) {
   const isMessage2 = arg !== null && typeof arg == "object" && "$typeName" in arg && typeof arg.$typeName == "string";
@@ -16338,17 +15849,14 @@ var sendErrorResponse = (error) => {
   hostBindings.sendResponse(payload);
 };
 init_exports();
-init_encodeFunctionData();
+init_encodeAbiParameters();
 var configSchema = exports_external.object({
   evms: exports_external.array(exports_external.object({
-    registryAddress: exports_external.string(),
+    receiverAddress: exports_external.string(),
     chainSelectorName: exports_external.string(),
     gasLimit: exports_external.string()
   }))
 });
-var registryAbi = parseAbi([
-  "function registerKeysOnBehalf(address registrant, uint256 schemeId, bytes signature, bytes stealthMetaAddress) external"
-]);
 var onBobRegistration = async (runtime2, payload) => {
   runtime2.log("⚙️ CRE Backend initializing in Wasm Sandbox...");
   const data = decodeJson(payload.input);
@@ -16362,25 +15870,23 @@ var onBobRegistration = async (runtime2, payload) => {
   if (!network248)
     throw new Error(`Network not found: ${evmConfig.chainSelectorName}`);
   const evmClient = new cre.capabilities.EVMClient(network248.chainSelector.selector);
-  const callData = encodeFunctionData({
-    abi: registryAbi,
-    functionName: "registerKeysOnBehalf",
-    args: [
-      data.registrant,
-      BigInt(data.schemeId),
-      data.signature,
-      data.stealthMetaAddressRaw
-    ]
-  });
+  const ruleEnum = data.rules.requiresWorldID ? 1 : 0;
+  const callData = encodeAbiParameters(parseAbiParameters("address, uint256, bytes, bytes, uint8"), [
+    data.registrant,
+    BigInt(data.schemeId),
+    data.signature,
+    data.stealthMetaAddressRaw,
+    ruleEnum
+  ]);
   const reportResponse = runtime2.report({
     encodedPayload: hexToBase64(callData),
     encoderName: "evm",
     signingAlgo: "ecdsa",
     hashingAlgo: "keccak256"
   }).result();
-  runtime2.log(`\uD83D\uDE80 Dispatching writeReport to ${evmConfig.registryAddress}...`);
+  runtime2.log(`\uD83D\uDE80 Dispatching writeReport to ${evmConfig.receiverAddress}...`);
   const resp = evmClient.writeReport(runtime2, {
-    receiver: evmConfig.registryAddress,
+    receiver: evmConfig.receiverAddress,
     report: reportResponse,
     gasConfig: { gasLimit: evmConfig.gasLimit }
   }).result();
