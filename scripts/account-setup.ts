@@ -6,7 +6,7 @@ import * as dotenv from "dotenv";
 import * as fs from "fs";
 import * as path from "path";
 
-dotenv.config({ path: path.resolve(__dirname, '.env.staging') });
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 const ERC6538_REGISTRY_ADDRESS = "0x6538E6bf4B0eBd30A8Ea093027Ac2422ce5d6538";
 
@@ -55,7 +55,7 @@ async function bobBackendSetup() {
 
     // 3. Raw 66-byte concatenation (Bypasses SDK string bugs)
     const stealthMetaAddressRaw = concatHex([spendingPublicKey, viewingPublicKey]);
-    console.log(`📍 Raw Meta-Address: ${stealthMetaAddressRaw.substring(0, 15)}...`);
+    console.log(`📍 Raw Meta-Address: ${stealthMetaAddressRaw}`);
 
     // 4. Perfect EIP-712 Signature
     const signature = await walletClient.signTypedData({
@@ -74,7 +74,7 @@ async function bobBackendSetup() {
         },
         primaryType: "Erc6538RegistryEntry",
         message: {
-            schemeId: 1n,
+            schemeId: 2n,
             stealthMetaAddress: stealthMetaAddressRaw,
             nonce: currentNonce
         }
