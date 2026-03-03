@@ -1,50 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ancile Stealth: World ID Sample Proofs</title>
-    <script src="https://unpkg.com/@worldcoin/idkit-standalone/build/index.global.js"></script>
-    <style>
-        body { font-family: monospace; background: #111; color: #0f0; padding: 40px; }
-        button { padding: 15px 30px; background: #fff; color: #000; font-weight: bold; cursor: pointer; border: none; font-size: 16px; }
-        pre { background: #222; padding: 20px; border-radius: 8px; overflow-x: auto; margin-top: 20px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>World ID 4.0 Proof Generator</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #1a1a1a; color: #e0e0e0; padding: 24px; max-width: 640px; }
+    h2 { margin: 0 0 8px; font-size: 1.25rem; }
+    p { margin: 8px 0; font-size: 14px; color: #999; }
+    button { padding: 10px 20px; background: #0f0; color: #000; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    pre { background: #222; padding: 16px; border-radius: 8px; overflow: auto; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
+    input[type="text"] { width: 100%; padding: 8px; background: #222; border: 1px solid #333; border-radius: 4px; color: #e0e0e0; font-family: monospace; box-sizing: border-box; }
+    .row { display: flex; gap: 8px; align-items: center; margin: 12px 0; }
+    .row input { flex: 1; min-width: 0; }
+    a { color: #6af; }
+  </style>
 </head>
 <body>
+  <h2>World ID 4.0 Proof Generator</h2>
+  <p>Run <code>npx tsx scripts/serve-rp-signature.ts</code> first. Set APP_ID, RP_ID, RP_SIGNING_KEY in scripts/.env.</p>
 
-    <h2>Ancile Stealth: Sample World ID Proof Generator</h2>
+  <p><label>Signal <strong>(must be Alice's address for transfer)</strong>: <input type="text" id="signal" placeholder="Load from server or paste 0x..."></label></p>
+  <button id="btn">Generate proof</button>
+  <p id="status"></p>
 
-    <button id="generate-btn">Generate Sample Proof</button>
+  <div id="qr-box" style="display:none; margin:16px 0;">
+    <p>Paste in <a href="https://simulator.worldcoin.org" target="_blank" rel="noopener">simulator</a>:</p>
+    <div class="row">
+      <input type="text" id="url" readonly>
+      <button type="button" id="copy">Copy</button>
+    </div>
+    <img id="qr" alt="QR" style="width:200px;height:200px;background:#fff;padding:8px;border-radius:8px;display:block;margin-top:8px;">
+  </div>
 
-    <h3>Generated Payload (Copy this into your script!):</h3>
-    <pre id="output">Waiting for proof...</pre>
+  <p><strong>Result</strong> (save as world-id-proof.json):</p>
+  <pre id="out">Click Generate proof, then complete verification in the simulator.</pre>
 
-    <script>
-        const button = document.getElementById('generate-btn');
-        const output = document.getElementById('output');
+  <script type="module">
+    const RP_URL = "http://localhost:3765/rp-context";
+    const ACTION = "test-ancile-verification";
 
-        button.addEventListener('click', () => {
-            IDKit.init({
-                app_id: 'your_app_id_here',
-                action: 'your_action_here',
-                verification_level: 'orb',
-                
-                // When the simulator succeeds, it passes the ZK-proof here
-                onSuccess: result => {
-                    console.log("✅ Proof successfully generated!", result);
-                    output.textContent = JSON.stringify(result, null, 2);
-                },
-                onError: error => {
-                    console.error("❌ Error:", error);
-                    output.textContent = "Error: " + JSON.stringify(error, null, 2);
-                }
-            });
+    const btn = document.getElementById("btn");
+    const out = document.getElementById("out");
+    const status = document.getElementById("status");
+    const qrBox = document.getElementById("qr-box");
+    const urlInput = document.getElementById("url");
+    const qrImg = document.getElementById("qr");
 
-            // Open the modal
-            IDKit.open();
-        });
-    </script>
+    document.getElementById("copy").onclick = () => {
+      urlInput.select();
+      navigator.clipboard.writeText(urlInput.value).then(() => { status.textContent = "Copied."; setTimeout(() => status.textContent = "", 2000); });
+    };
 
+    btn.onclick = async () => {
+      btn.disabled = true;
+      status.textContent = "Loading...";
+      qrBox.style.display = "none";
+      out.textContent = "Waiting...";
+
+      try {
+        const res = await fetch(RP_URL + "?action=" + encodeURIComponent(ACTION));
+        if (!res.ok) throw new Error("Start serve-rp-signature.ts and set .env (APP_ID, RP_ID, RP_SIGNING_KEY)");
+        const data = await res.json();
+        const rp_context = { rp_id: data.rp_id, nonce: data.nonce, created_at: data.created_at, expires_at: data.expires_at, signature: data.signature || data.sig };
+        const app_id = data.app_id;
+        if (!app_id) throw new Error("APP_ID missing in .env");
+
+        status.textContent = "Loading IDKit...";
+        const { IDKit, orbLegacy } = await import("https://esm.sh/@worldcoin/idkit-core@4.0.9");
+
+        const signalInput = document.getElementById("signal");
+        if (data.signal_hint && !signalInput.value.trim()) signalInput.placeholder = data.signal_hint;
+        const signal = signalInput.value.trim() || data.signal_hint || "0x8a52a28861990cd173F3Ef8FD20caC84BFA4236d";
+        const request = await IDKit.request({
+          app_id,
+          action: ACTION,
+          rp_context,
+          allow_legacy_proofs: true,
+          environment: "staging",
+        }).preset(orbLegacy({ signal }));
+
+        const uri = request.connectorURI;
+        if (!uri) throw new Error("No connect URL");
+        urlInput.value = uri;
+        qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(uri);
+        qrBox.style.display = "block";
+        status.textContent = "Complete verification in simulator, then wait...";
+
+        const done = await request.pollUntilCompletion({ pollInterval: 2000, timeout: 120000 });
+        if (!done.success) throw new Error(done.error || "Verification failed");
+
+        out.textContent = JSON.stringify(done.result, null, 2);
+        status.textContent = "Done. Save the JSON above as world-id-proof.json";
+      } catch (e) {
+        status.textContent = String(e);
+        status.style.color = "#f88";
+        out.textContent = "Error: " + String(e);
+      } finally {
+        btn.disabled = false;
+        status.style.color = "";
+      }
+    };
+  </script>
 </body>
 </html>
