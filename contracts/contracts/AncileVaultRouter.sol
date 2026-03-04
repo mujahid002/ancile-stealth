@@ -27,7 +27,9 @@ contract AncileVaultRouter is IReceiver {
     enum ActionType {
         DEFAULT,
         REGISTER,
-        P2P_DISPATCH
+        P2P_DISPATCH,
+        SWEEP,
+        SWAP
     }
     enum ComplianceRule {
         DEFAULT,
@@ -63,6 +65,9 @@ contract AncileVaultRouter is IReceiver {
         owner = _owner;
     }
 
+    // Allow the Vault to receive ETH liquidity for Swaps
+    receive() external payable {}
+
     // 🌟 1. ALICE DEPOSITS FUNDS NATIVELY
     function deposit(address token, uint256 amount) external {
         bool success = IERC20(token).transferFrom(
@@ -86,11 +91,10 @@ contract AncileVaultRouter is IReceiver {
             (ActionType, bytes)
         );
 
-        if (action == ActionType.REGISTER) {
-            _handleRegistration(payload);
-        } else if (action == ActionType.P2P_DISPATCH) {
-            _handleP2PDispatch(payload);
-        }
+        if (action == ActionType.REGISTER) _handleRegistration(payload);
+        else if (action == ActionType.P2P_DISPATCH) _handleP2PDispatch(payload);
+        else if (action == ActionType.SWEEP) _handleStealthSweep(payload);
+        else if (action == ActionType.SWAP) _handleStealthSwap(payload);
     }
 
     // 🌟 2. BOB REGISTERS HIS KEYS & COMPLIANCE RULE
@@ -172,11 +176,89 @@ contract AncileVaultRouter is IReceiver {
         vaultNonces[sender]++; // Prevent replay attacks
         vaultBalances[sender][token] -= amount; // Deduct funds
 
+        vaultBalances[stealthAddress][token] += amount;
+
         // C. Push tokens to Bob's Stealth Address
         bool success = IERC20(token).transfer(stealthAddress, amount);
         require(success, "P2P Transfer failed");
 
         emit Announcement(creSchemeIds[recipient], stealthAddress, pubKey, "");
+    }
+
+    function _handleStealthSweep(bytes memory payload) internal {
+        (
+            address token, uint256 amount, address stealthAddress, address destination, 
+            uint8 v, bytes32 r, bytes32 s
+        ) = abi.decode(payload, (address, uint256, address, address, uint8, bytes32, bytes32));
+        
+        // A. Verify stealth address has funds
+        require(vaultBalances[stealthAddress][token] >= amount, "Insufficient stealth balance");
+
+        // B. Verify the signature came from the mathematically derived Stealth Private Key
+        bytes32 messageHash = keccak256(abi.encodePacked(stealthAddress, destination, amount, vaultNonces[stealthAddress]));
+        bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
+        address recovered = ecrecover(ethSignedMessageHash, v, r, s);
+        require(recovered == stealthAddress, "Invalid sweep signature");
+        
+        // C. Push actual tokens to Binance/Cold Wallet
+        vaultNonces[stealthAddress]++;
+        vaultBalances[stealthAddress][token] -= amount;
+
+        bool success = IERC20(token).transfer(destination, amount);
+        require(success, "Sweep Transfer failed");
+    }
+
+    // 🌟 THE NEW SWAP FUNCTION (Bob trades stealth USDC for native ETH)
+    function _handleStealthSwap(bytes memory payload) internal {
+        (
+            address tokenIn,
+            uint256 amountIn,
+            address stealthAddress,
+            uint256 ethOutputAmount,
+            uint8 v,
+            bytes32 r,
+            bytes32 s
+        ) = abi.decode(
+                payload,
+                (address, uint256, address, uint256, uint8, bytes32, bytes32)
+            );
+
+        // A. Verify the stealth address has the USDC in the Vault
+        require(
+            vaultBalances[stealthAddress][tokenIn] >= amountIn,
+            "Insufficient stealth balance"
+        );
+        require(
+            address(this).balance >= ethOutputAmount,
+            "Vault lacks ETH liquidity"
+        );
+
+        // B. Verify Bob's signature using the derived Stealth Private Key
+        // Hash: stealthAddress + tokenIn + amountIn + nonce
+        bytes32 messageHash = keccak256(
+            abi.encodePacked(
+                stealthAddress,
+                tokenIn,
+                amountIn,
+                vaultNonces[stealthAddress]
+            )
+        );
+        bytes32 ethSignedMessageHash = keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash)
+        );
+        address recovered = ecrecover(ethSignedMessageHash, v, r, s);
+        require(recovered == stealthAddress, "Invalid swap signature");
+
+        // C. Execute the Swap!
+        vaultNonces[stealthAddress]++;
+
+        // The Vault absorbs the USDC into its own protocol treasury
+        vaultBalances[stealthAddress][tokenIn] -= amountIn;
+        vaultBalances[address(this)][tokenIn] += amountIn;
+
+        // The Vault sends native ETH directly to Bob's Stealth Address
+        (bool success, ) = stealthAddress.call{value: ethOutputAmount}("");
+        require(success, "ETH Transfer failed");
     }
 
     function supportsInterface(
@@ -187,7 +269,11 @@ contract AncileVaultRouter is IReceiver {
             interfaceId == type(IERC165).interfaceId;
     }
 
-    function bobSetup(address registrant, uint256 schemeId, ComplianceRule rule) external {
+    function bobSetup(
+        address registrant,
+        uint256 schemeId,
+        ComplianceRule rule
+    ) external {
         if (msg.sender != owner) revert OnlyOwner();
         stealthRules[registrant] = rule;
         creSchemeIds[registrant] = schemeId;
