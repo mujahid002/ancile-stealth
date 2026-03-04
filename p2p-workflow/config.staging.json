@@ -1,7 +1,0 @@
-{
-  "evms": [{
-    "receiverAddress": "0x1826D3Bc8450c26e252232A968a2C0A9fbde1E2f",
-    "chainSelectorName": "ethereum-testnet-sepolia-base-1",
-    "gasLimit": "500000"
-  }]
-}
