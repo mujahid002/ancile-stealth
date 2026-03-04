@@ -1,11 +1,7 @@
 import { ethers } from "ethers";
-import * as dotenv from "dotenv";
-import * as path from "path";
+import config from "../../config.json";
 
-// Load your staging environment variables
-dotenv.config({ path: path.resolve(__dirname, '.env') });
-
-const ERC6538_REGISTRY_ADDRESS = "0x6538E6bf4B0eBd30A8Ea093027Ac2422ce5d6538";
+const ERC6538_REGISTRY_ADDRESS = config.REGISTRY_ADDRESS as `0x${string}`;
 
 // The minimal ABI to read Bob's profile
 const REGISTRY_ABI = [
@@ -13,15 +9,15 @@ const REGISTRY_ABI = [
 ];
 
 async function verifyBobOnChainRegistration() {
-    const rpcUrl = process.env.BASE_SEPOLIA_RPC_URL!;
+    const rpcUrl = config.BASE_SEPOLIA_RPC_URL;
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
     
     // We don't need a wallet/signer because we are just reading data!
     const registryContract = new ethers.Contract(ERC6538_REGISTRY_ADDRESS, REGISTRY_ABI, provider);
 
     // Bob's main address that we used in the payload
-    const bobAddress = "0xb5165E6B4066A4D68a2205752CC533f9D3c95B42";
-    const schemeId = 1;
+    const bobAddress = config.BOB_PUBLIC_ADDRESS as `0x${string}`;
+    const schemeId = config.CURRENT_SCHEME_ID_FOR_BOB;
 
     console.log(`🔍 Querying Base Sepolia for Bob's Meta-Address...`);
     console.log(`👤 Address: ${bobAddress}`);

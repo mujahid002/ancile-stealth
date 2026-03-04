@@ -2,6 +2,8 @@
 
 **Programmable Private Routing for Web3.**
 
+📁 **Project structure & file reference:** [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md)
+
 Ethereum is radically transparent by default. While native privacy is finally emerging through powerful cryptographic standards like **ERC-5564 (Stealth Addresses)**, the raw protocol has a ceiling. The elliptic curve math enabling non-interactive private transfers is brilliant, but it natively lacks the programmable compliance, Sybil resistance, and gas abstraction required for institutional DeFi adoption.
 
 Ancile bridges this gap. By leveraging the **Chainlink Runtime Environment (CRE)** as an off-chain TEE firewall, Ancile introduces a stateless, non-custodial privacy router protected by Zero-Knowledge proofs (World ID) and programmatic risk safeguards.

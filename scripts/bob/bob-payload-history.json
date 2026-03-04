@@ -1,0 +1,102 @@
+[
+  {
+    "timestamp": "2026-03-01T11:27:22.338Z",
+    "registrant": "0xb5165E6B4066A4D68a2205752CC533f9D3c95B42",
+    "schemeId": 1,
+    "stealthMetaAddressRaw": "0x03c2ed1f2dd79511bc7cf8eb33977e944eb8a230573ed46bbe598f7b6acfde4ab302f72edcfdcc494bc2b515ab502bbd92a4a972e0b926b3a55c34411e41dc32907b",
+    "signature": "0x0c7bc21d3ff85fff6b5dd3c176a97a71865e2bd41b663f4bf73b577ac2eaf90f19e8cc098c87c2bfbd294c618dc02fea07eefa7f2102985858e02081b2ef99da1b",
+    "rules": {
+      "requiresWorldID": true
+    }
+  },
+  {
+    "timestamp": "2026-03-01T17:15:50.898Z",
+    "registrant": "0xb5165E6B4066A4D68a2205752CC533f9D3c95B42",
+    "schemeId": 1,
+    "stealthMetaAddressRaw": "0x03c2ed1f2dd79511bc7cf8eb33977e944eb8a230573ed46bbe598f7b6acfde4ab302f72edcfdcc494bc2b515ab502bbd92a4a972e0b926b3a55c34411e41dc32907b",
+    "signature": "0x87b83b5351251074e7d3bf68d86a3052d8f757d7ff88989d34f286a1c291b95961b7800be190b20c62e88488679f7278635f409c23cbc59ef089239a60bd5e221b",
+    "rules": {
+      "requiresWorldID": true
+    }
+  },
+  {
+    "timestamp": "2026-03-02T10:57:29.445Z",
+    "registrant": "0xb5165E6B4066A4D68a2205752CC533f9D3c95B42",
+    "schemeId": 1,
+    "stealthMetaAddressRaw": "0x03c2ed1f2dd79511bc7cf8eb33977e944eb8a230573ed46bbe598f7b6acfde4ab302f72edcfdcc494bc2b515ab502bbd92a4a972e0b926b3a55c34411e41dc32907b",
+    "signature": "0xc6764831eaa9c9c6b9965c3634db91f76d632e5fb7f3b75eb2d301a11011ec8a00d4f67bd0bd2ca1dda684eeb3d46ab10c50ea138b8a8918f14a1d183c0c8d021b",
+    "rules": {
+      "requiresWorldID": true
+    }
+  },
+  {
+    "timestamp": "2026-03-02T11:10:59.447Z",
+    "registrant": "0xb5165E6B4066A4D68a2205752CC533f9D3c95B42",
+    "schemeId": 3,
+    "stealthMetaAddressRaw": "0x03c2ed1f2dd79511bc7cf8eb33977e944eb8a230573ed46bbe598f7b6acfde4ab302f72edcfdcc494bc2b515ab502bbd92a4a972e0b926b3a55c34411e41dc32907b",
+    "signature": "0xd770b3c46e2b62d1293fadc9cd6183ed100d729c18eb78e1e922ab4e5c24a14962556844c3789f6c8f87d404bc6c506876dd07a1f8d4a782f5813e3fce6657e81c",
+    "rules": {
+      "requiresWorldID": true
+    }
+  },
+  {
+    "timestamp": "2026-03-02T16:22:48.476Z",
+    "registrant": "0xb5165E6B4066A4D68a2205752CC533f9D3c95B42",
+    "schemeId": 3,
+    "stealthMetaAddressRaw": "0x03c2ed1f2dd79511bc7cf8eb33977e944eb8a230573ed46bbe598f7b6acfde4ab302f72edcfdcc494bc2b515ab502bbd92a4a972e0b926b3a55c34411e41dc32907b",
+    "signature": "0x1ffe311bd64426aaf2d84e4f6c7f061ce5dd950e509f4f395615562a8fce0e67254c9054c9af4b77cd5686b9381c9b7478ff0cd98a555dc4df2918a052c511e21c",
+    "rules": {
+      "requiresWorldID": true
+    }
+  },
+  {
+    "timestamp": "2026-03-03T07:05:55.491Z",
+    "registrant": "0xb5165E6B4066A4D68a2205752CC533f9D3c95B42",
+    "schemeId": 4,
+    "stealthMetaAddressRaw": "0x03c2ed1f2dd79511bc7cf8eb33977e944eb8a230573ed46bbe598f7b6acfde4ab302f72edcfdcc494bc2b515ab502bbd92a4a972e0b926b3a55c34411e41dc32907b",
+    "signature": "0x791608a07b82c517ca4fa4d48cbc04348b04e8d1edf7569af7ce15e545de6920538a845c2f5a15ddbd093570d9d7bc5f78f443d10a49d44e95a03e51f7cc111e1c",
+    "rules": {
+      "requiresWorldID": true
+    }
+  },
+  {
+    "timestamp": "2026-03-03T07:20:32.632Z",
+    "registrant": "0xb5165E6B4066A4D68a2205752CC533f9D3c95B42",
+    "schemeId": 5,
+    "stealthMetaAddressRaw": "0x03c2ed1f2dd79511bc7cf8eb33977e944eb8a230573ed46bbe598f7b6acfde4ab302f72edcfdcc494bc2b515ab502bbd92a4a972e0b926b3a55c34411e41dc32907b",
+    "signature": "0xa14e4dfbda2e13655ad3194be2c3a7aab5d5a1ef6389ed0b86e4652b2d85599a4d7a3ec568431d06bfb2985e4a5dc890b5675c57a84b2f533739aa9b6da328301b",
+    "rules": {
+      "requiresWorldID": true
+    }
+  },
+  {
+    "timestamp": "2026-03-03T08:08:30.000Z",
+    "registrant": "0xb5165E6B4066A4D68a2205752CC533f9D3c95B42",
+    "schemeId": 6,
+    "stealthMetaAddressRaw": "0x03c2ed1f2dd79511bc7cf8eb33977e944eb8a230573ed46bbe598f7b6acfde4ab302f72edcfdcc494bc2b515ab502bbd92a4a972e0b926b3a55c34411e41dc32907b",
+    "signature": "0xcf4e1c368545d2e5b8e357f845d4a027fb4d31b42a2cf5eebf652f063a4caac03d0dc2f3ff7d4f6579b1568e48f25c73a34a2cafc7d6acb4325cd6808ee4330e1c",
+    "rules": {
+      "requiresWorldID": true
+    }
+  },
+  {
+    "timestamp": "2026-03-03T08:50:30.550Z",
+    "registrant": "0xb5165E6B4066A4D68a2205752CC533f9D3c95B42",
+    "schemeId": 6,
+    "stealthMetaAddressRaw": "0x03c2ed1f2dd79511bc7cf8eb33977e944eb8a230573ed46bbe598f7b6acfde4ab302f72edcfdcc494bc2b515ab502bbd92a4a972e0b926b3a55c34411e41dc32907b",
+    "signature": "0x1cb0359061a7defdfaedbf6306b57fa389a683b7995f002492921932210c028e05990a3f252b543d77a6cf16ea79b2a693b89f30f3fb2d816bb4ec102259f8a31b",
+    "rules": {
+      "requiresWorldID": true
+    }
+  },
+  {
+    "timestamp": "2026-03-03T09:07:09.896Z",
+    "registrant": "0xb5165E6B4066A4D68a2205752CC533f9D3c95B42",
+    "schemeId": 7,
+    "stealthMetaAddressRaw": "0x03c2ed1f2dd79511bc7cf8eb33977e944eb8a230573ed46bbe598f7b6acfde4ab302f72edcfdcc494bc2b515ab502bbd92a4a972e0b926b3a55c34411e41dc32907b",
+    "signature": "0xd87ec05901eb73cb054545446570d5e384d05fe5957c142e97bec95a168565fb5339c7e1334e3ec1c2db1f8ed0447fc46e10799804b1e03527b9f6e4a0342c441b",
+    "rules": {
+      "requiresWorldID": true
+    }
+  }
+]

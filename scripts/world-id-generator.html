@@ -3,43 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>World ID 4.0 Proof Generator</title>
+  <title>Ancile Stealth // World ID 4.0 Terminal</title>
   <style>
-    body { font-family: system-ui, sans-serif; background: #1a1a1a; color: #e0e0e0; padding: 24px; max-width: 640px; }
-    h2 { margin: 0 0 8px; font-size: 1.25rem; }
-    p { margin: 8px 0; font-size: 14px; color: #999; }
-    button { padding: 10px 20px; background: #0f0; color: #000; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    pre { background: #222; padding: 16px; border-radius: 8px; overflow: auto; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
-    input[type="text"] { width: 100%; padding: 8px; background: #222; border: 1px solid #333; border-radius: 4px; color: #e0e0e0; font-family: monospace; box-sizing: border-box; }
-    .row { display: flex; gap: 8px; align-items: center; margin: 12px 0; }
+    body { font-family: 'Courier New', Courier, monospace; background: #0a0a0a; color: #00ff00; padding: 40px; max-width: 700px; margin: auto; }
+    h2 { margin: 0 0 16px; font-size: 1.5rem; border-bottom: 1px solid #00ff00; padding-bottom: 10px; text-transform: uppercase; letter-spacing: 2px;}
+    p { margin: 12px 0; font-size: 14px; color: #aaa; }
+    button { padding: 12px 24px; background: #00ff00; color: #000; font-weight: bold; font-family: 'Courier New', Courier, monospace; border: none; border-radius: 4px; cursor: pointer; text-transform: uppercase; transition: 0.2s;}
+    button:hover { background: #fff; box-shadow: 0 0 10px #00ff00; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; background: #555; color: #222;}
+    pre { background: #111; padding: 20px; border-radius: 4px; border: 1px solid #333; overflow: auto; font-size: 12px; white-space: pre-wrap; word-break: break-all; color: #00ff00; box-shadow: inset 0 0 10px #000;}
+    input[type="text"] { width: 100%; padding: 12px; background: #111; border: 1px solid #00ff00; border-radius: 4px; color: #00ff00; font-family: monospace; box-sizing: border-box; margin-top: 5px; outline: none;}
+    input[type="text"]:focus { box-shadow: 0 0 5px #00ff00; }
+    .row { display: flex; gap: 8px; align-items: center; margin: 16px 0; }
     .row input { flex: 1; min-width: 0; }
-    a { color: #6af; }
+    a { color: #00ff00; text-decoration: none; border-bottom: 1px dotted #00ff00;}
+    a:hover { color: #fff; }
+    .highlight { color: #fff; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h2>World ID 4.0 Proof Generator</h2>
-  <p>Run <code>npx tsx scripts/serve-rp-signature.ts</code> first. Set APP_ID, RP_ID, RP_SIGNING_KEY in scripts/.env.</p>
+  <h2>Ancile ZK-Terminal</h2>
+  <p>Run <span class="highlight">npx tsx scripts/serve-rp-signature.ts</span> in your console to boot the backend.</p>
 
-  <p><label>Signal <strong>(must be Alice's address for transfer)</strong>: <input type="text" id="signal" placeholder="Load from server or paste 0x..."></label></p>
-  <button id="btn">Generate proof</button>
-  <p id="status"></p>
+  <p>
+    <label>Cryptographic Signal (Address): 
+      <input type="text" id="signal" value="" placeholder="Enter Address 0x...">
+    </label>
+  </p>
+  
+  <button id="btn">>> Initialize Proof Generation</button>
+  <p id="status" style="margin-top: 20px; font-weight: bold;"></p>
 
-  <div id="qr-box" style="display:none; margin:16px 0;">
-    <p>Paste in <a href="https://simulator.worldcoin.org" target="_blank" rel="noopener">simulator</a>:</p>
+  <div id="qr-box" style="display:none; margin:24px 0; padding: 20px; border: 1px dashed #00ff00;">
+    <p class="highlight">Awaiting Simulator Verification...</p>
     <div class="row">
       <input type="text" id="url" readonly>
-      <button type="button" id="copy">Copy</button>
+      <button type="button" id="copy">Copy URI</button>
     </div>
-    <img id="qr" alt="QR" style="width:200px;height:200px;background:#fff;padding:8px;border-radius:8px;display:block;margin-top:8px;">
+    <img id="qr" alt="QR" style="width:200px;height:200px;background:#fff;padding:12px;display:block;margin:16px auto 0;">
   </div>
 
-  <p><strong>Result</strong> (save as world-id-proof.json):</p>
-  <pre id="out">Click Generate proof, then complete verification in the simulator.</pre>
+  <p class="highlight">> OUTPUT_LOG:</p>
+  <pre id="out">System ready. Waiting for user input...</pre>
 
   <script type="module">
     const RP_URL = "http://localhost:3765/rp-context";
-    const ACTION = "test-ancile-verification";
+    const SAVE_URL = "http://localhost:3765/save-proof";
+    const ACTION = "cre-ancile-stealth-verification";
 
     const btn = document.getElementById("btn");
     const out = document.getElementById("out");
@@ -50,31 +60,32 @@
 
     document.getElementById("copy").onclick = () => {
       urlInput.select();
-      navigator.clipboard.writeText(urlInput.value).then(() => { status.textContent = "Copied."; setTimeout(() => status.textContent = "", 2000); });
+      navigator.clipboard.writeText(urlInput.value).then(() => { 
+        status.textContent = "[SYSTEM] URI Copied to clipboard."; 
+      });
     };
 
     btn.onclick = async () => {
       btn.disabled = true;
-      status.textContent = "Loading...";
+      status.textContent = "[SYSTEM] Establishing secure connection to backend...";
       qrBox.style.display = "none";
-      out.textContent = "Waiting...";
+      out.textContent = "Processing...";
 
       try {
         const res = await fetch(RP_URL + "?action=" + encodeURIComponent(ACTION));
-        if (!res.ok) throw new Error("Start serve-rp-signature.ts and set .env (APP_ID, RP_ID, RP_SIGNING_KEY)");
+        if (!res.ok) throw new Error("Backend offline. Start serve-rp-signature.ts.");
+        
         const data = await res.json();
-        const rp_context = { rp_id: data.rp_id, nonce: data.nonce, created_at: data.created_at, expires_at: data.expires_at, signature: data.signature || data.sig };
-        const app_id = data.app_id;
-        if (!app_id) throw new Error("APP_ID missing in .env");
-
-        status.textContent = "Loading IDKit...";
+        const rp_context = { rp_id: data.rp_id, nonce: data.nonce, created_at: data.created_at, expires_at: data.expires_at, signature: data.signature };
+        
+        status.textContent = "[SYSTEM] Loading IDKit 4.0 Core...";
         const { IDKit, orbLegacy } = await import("https://esm.sh/@worldcoin/idkit-core@4.0.9");
 
-        const signalInput = document.getElementById("signal");
-        if (data.signal_hint && !signalInput.value.trim()) signalInput.placeholder = data.signal_hint;
-        const signal = signalInput.value.trim() || data.signal_hint || "0x8a52a28861990cd173F3Ef8FD20caC84BFA4236d";
+        const signal = document.getElementById("signal").value.trim();
+        
+        status.textContent = "[SYSTEM] Generating verification intent...";
         const request = await IDKit.request({
-          app_id,
+          app_id: data.app_id,
           action: ACTION,
           rp_context,
           allow_legacy_proofs: true,
@@ -82,24 +93,35 @@
         }).preset(orbLegacy({ signal }));
 
         const uri = request.connectorURI;
-        if (!uri) throw new Error("No connect URL");
         urlInput.value = uri;
         qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(uri);
         qrBox.style.display = "block";
-        status.textContent = "Complete verification in simulator, then wait...";
+        status.textContent = "[SYSTEM] AWAITING BIOMETRIC VERIFICATION IN SIMULATOR...";
 
         const done = await request.pollUntilCompletion({ pollInterval: 2000, timeout: 120000 });
         if (!done.success) throw new Error(done.error || "Verification failed");
 
         out.textContent = JSON.stringify(done.result, null, 2);
-        status.textContent = "Done. Save the JSON above as world-id-proof.json";
+        status.textContent = "[SYSTEM] Proof accepted. Auto-saving to workspace...";
+
+        const saveRes = await fetch(SAVE_URL, {
+            method: "POST",
+            body: JSON.stringify(done.result)
+        });
+        
+        if (saveRes.ok) {
+            status.textContent = "[SYSTEM] SUCCESS: world-id-proof.json written to disk!";
+            status.style.color = "#00ff00";
+        } else {
+            throw new Error("Proof generated, but failed to auto-save to file.");
+        }
+
       } catch (e) {
-        status.textContent = String(e);
-        status.style.color = "#f88";
-        out.textContent = "Error: " + String(e);
+        status.textContent = "[ERROR] " + String(e);
+        status.style.color = "#ff0000";
+        out.textContent = String(e);
       } finally {
         btn.disabled = false;
-        status.style.color = "";
       }
     };
   </script>

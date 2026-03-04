@@ -14,17 +14,18 @@ import { network } from "hardhat";
 
 const { ethers } = await network.connect();
 
+import config from "../../../config.json";
 // Base Sepolia: KeystoneForwarder (from CRE tx "To" address)
-const FORWARDER_BASE_SEPOLIA = "0x82300bd7c3958625581cc2F77bC6464dcEcDF3e5";
+const FORWARDER_BASE_SEPOLIA = config.FORWARDER_BASE_SEPOLIA;
 // Official ERC-6538 Stealth Registry on Base Sepolia
-const REGISTRY_ERC6538 = "0x6538E6bf4B0eBd30A8Ea093027Ac2422ce5d6538";
+const REGISTRY_ADDRESS = config.REGISTRY_ADDRESS;
 
 async function main() {
   const [deployer] = await ethers.getSigners();
   console.log("Deploying AncileStealthReceiver from:", deployer.address);
 
   const AncileStealthReceiver = await ethers.getContractFactory("AncileStealthReceiver");
-  const receiver = await AncileStealthReceiver.deploy(FORWARDER_BASE_SEPOLIA, REGISTRY_ERC6538);
+  const receiver = await AncileStealthReceiver.deploy(FORWARDER_BASE_SEPOLIA, REGISTRY_ADDRESS);
   await receiver.waitForDeployment();
   const addr = await receiver.getAddress();
   console.log("AncileStealthReceiver deployed to:", addr);

@@ -27,10 +27,10 @@
 staging-settings:
   rpcs:
     - chain-name: ethereum-testnet-sepolia-base-1
-      url: https://edge.goldsky.com/standard/evm/84532?secret=gs_edge_cmlt29f64ym0d01uucs0rh43p
+      url: https://base-sepolia.g.alchemy.com/v2/BlO_oHf7rKPoWsDiwLW8m
 
 # ==========================================================================
 production-settings:
   rpcs:
     - chain-name: ethereum-testnet-sepolia-base-1
-      url: https://edge.goldsky.com/standard/evm/84532?secret=gs_edge_cmlt29f64ym0d01uucs0rh43p
+      url: https://base-sepolia.g.alchemy.com/v2/BlO_oHf7rKPoWsDiwLW8m

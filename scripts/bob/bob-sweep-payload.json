@@ -1,0 +1,20 @@
+{
+  "action": 3,
+  "data": {
+    "token": "0xdaDB8Dcd88eAcFe450706F5FD969b3Db0C415803",
+    "amount": "10000000",
+    "stealthAddress": "0x1A383FA9d9740E9144d736A69Ea0caAf28eF10Bc",
+    "destination": "0x000000000000000000000000000000000000dEaD",
+    "permit": {
+      "deadline": "1772657307",
+      "v": 27,
+      "r": "0x9e4ac5cef845239ef886f11568a8de00e188e21a876dbd7da94168dd1f681b38",
+      "s": "0x6d4323a8b9c6006c5892ee040109fe80d2aaa129e595d1385064c0ed26bcc8a4"
+    },
+    "intent": {
+      "v": 28,
+      "r": "0x74e4d7205406731f075340c51b5a8cde52ac0f1814a0bcc5930a96a9ce56a6de",
+      "s": "0x1d4183378974763b4ba2ae144280968d969993d83065441198989bd1ffacfeef"
+    }
+  }
+}

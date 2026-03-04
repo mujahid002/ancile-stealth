@@ -15903,50 +15903,73 @@ var configSchema = exports_external.object({
   worldIdVerifyUrl: exports_external.string()
 });
 function fetchWorldIdVerify(sendRequester, url, bodyBase64) {
-  const response = sendRequester.sendRequest({
-    url,
-    method: "POST",
-    multiHeaders: { "Content-Type": { values: ["application/json"] } },
-    body: bodyBase64
-  }).result();
+  const response = sendRequester.sendRequest({ url, method: "POST", multiHeaders: { "Content-Type": { values: ["application/json"] } }, body: bodyBase64 }).result();
   if (!ok(response))
     throw new Error(`World ID Failed: ${text(response)}`);
   return true;
 }
 var onAncileRoute = async (runtime2, payload) => {
-  runtime2.log("=====================================================");
-  runtime2.log("⚙️  Ancile Compliance Vault Initializing...");
+  runtime2.log("⚙️  Ancile Double-Permit Router Initializing...");
   const rawPayload = decodeJson(payload.input);
   let actionType = Number(rawPayload.action);
   let data = rawPayload.data;
   if (actionType === 2) {
     if (!data.worldIdProof)
       throw new Error("❌ Access Denied: Receiver requires World ID verification.");
-    runtime2.log(`\uD83D\uDEE1️  Authenticating Sender via World ID Portal...`);
     const bodyBase64 = typeof Buffer !== "undefined" ? Buffer.from(JSON.stringify(data.worldIdProof), "utf8").toString("base64") : btoa(unescape(encodeURIComponent(JSON.stringify(data.worldIdProof))));
     const httpClient = new ClientCapability3;
     httpClient.sendRequest(runtime2, fetchWorldIdVerify, consensusIdenticalAggregation())(runtime2.config.worldIdVerifyUrl, bodyBase64).result();
     runtime2.log("✅ Sender verified as unique human!");
   }
   let nestedPayloadBytes;
-  if (actionType === 1) {
-    runtime2.log(`\uD83D\uDC64 Compiling REGISTRATION for: ${data.registrant}`);
-    const ruleEnum = data.rules.requiresWorldID ? 1 : 0;
-    nestedPayloadBytes = encodeAbiParameters(parseAbiParameters("address, uint256, bytes, bytes, uint8"), [data.registrant, BigInt(data.schemeId), data.signature, data.stealthMetaAddressRaw, ruleEnum]);
-  } else if (actionType === 2) {
+  if (actionType === 2) {
     runtime2.log(`\uD83D\uDCB8 Compiling P2P DISPATCH to Stealth Address: ${data.stealthAddress}`);
-    const amount = typeof data.amount === "string" ? BigInt(data.amount) : BigInt(Number(data.amount));
-    nestedPayloadBytes = encodeAbiParameters(parseAbiParameters("address, uint256, address, address, address, bytes, uint8, bytes32, bytes32"), [
-      data.token,
+    const amount = BigInt(data.amount);
+    const p2pAbi = [{
+      type: "tuple",
+      components: [
+        { name: "token", type: "address" },
+        { name: "amount", type: "uint256" },
+        { name: "sender", type: "address" },
+        { name: "recipientRegistrant", type: "address" },
+        { name: "stealthAddress", type: "address" },
+        { name: "pubKey", type: "bytes" },
+        { name: "permit", type: "tuple", components: [{ name: "deadline", type: "uint256" }, { name: "v", type: "uint8" }, { name: "r", type: "bytes32" }, { name: "s", type: "bytes32" }] },
+        { name: "intent", type: "tuple", components: [{ name: "v", type: "uint8" }, { name: "r", type: "bytes32" }, { name: "s", type: "bytes32" }] }
+      ]
+    }];
+    nestedPayloadBytes = encodeAbiParameters(p2pAbi, [{
+      token: data.token,
       amount,
-      data.sender,
-      data.recipientRegistrant,
-      data.stealthAddress,
-      data.ephemeralPubKey,
-      Number(data.sigV),
-      data.sigR,
-      data.sigS
-    ]);
+      sender: data.sender,
+      recipientRegistrant: data.recipientRegistrant,
+      stealthAddress: data.stealthAddress,
+      pubKey: data.ephemeralPubKey,
+      permit: { deadline: BigInt(data.permit.deadline), v: Number(data.permit.v), r: data.permit.r, s: data.permit.s },
+      intent: { v: Number(data.intent.v), r: data.intent.r, s: data.intent.s }
+    }]);
+  } else if (actionType === 3) {
+    runtime2.log(`\uD83E\uDDF9 Compiling SWEEP for Stealth Address: ${data.stealthAddress}`);
+    const amount = BigInt(data.amount);
+    const sweepAbi = [{
+      type: "tuple",
+      components: [
+        { name: "token", type: "address" },
+        { name: "amount", type: "uint256" },
+        { name: "stealthAddress", type: "address" },
+        { name: "destination", type: "address" },
+        { name: "permit", type: "tuple", components: [{ name: "deadline", type: "uint256" }, { name: "v", type: "uint8" }, { name: "r", type: "bytes32" }, { name: "s", type: "bytes32" }] },
+        { name: "intent", type: "tuple", components: [{ name: "v", type: "uint8" }, { name: "r", type: "bytes32" }, { name: "s", type: "bytes32" }] }
+      ]
+    }];
+    nestedPayloadBytes = encodeAbiParameters(sweepAbi, [{
+      token: data.token,
+      amount,
+      stealthAddress: data.stealthAddress,
+      destination: data.destination,
+      permit: { deadline: BigInt(data.permit.deadline), v: Number(data.permit.v), r: data.permit.r, s: data.permit.s },
+      intent: { v: Number(data.intent.v), r: data.intent.r, s: data.intent.s }
+    }]);
   } else {
     throw new Error("❌ Invalid Action Enum");
   }
@@ -15957,12 +15980,11 @@ var onAncileRoute = async (runtime2, payload) => {
     throw new Error(`Network not found`);
   const evmClient = new cre.capabilities.EVMClient(network248.chainSelector.selector);
   const reportResponse = runtime2.report({ encodedPayload: hexToBase64(finalCallData), encoderName: "evm", signingAlgo: "ecdsa", hashingAlgo: "keccak256" }).result();
-  runtime2.log(`\uD83D\uDE80 Dispatching to Vault: ${evmConfig.receiverAddress}`);
+  runtime2.log(`\uD83D\uDE80 Dispatching to Router: ${evmConfig.receiverAddress}`);
   const resp = evmClient.writeReport(runtime2, { receiver: evmConfig.receiverAddress, report: reportResponse, gasConfig: { gasLimit: evmConfig.gasLimit } }).result();
-  if (resp.txStatus !== TxStatus.SUCCESS) {
+  if (resp.txStatus !== TxStatus.SUCCESS)
     throw new Error(`❌ On-chain execution failed: ${resp.errorMessage || resp.txStatus}`);
-  }
-  runtime2.log(`✅ Base Sepolia Execution Complete! Tx Hash: ${bytesToHex(resp.txHash || new Uint8Array(0))}`);
+  runtime2.log(`✅ Execution Complete! Tx Hash: ${bytesToHex(resp.txHash || new Uint8Array(0))}`);
   return `Execution complete. Tx Hash: ${bytesToHex(resp.txHash || new Uint8Array(0))}`;
 };
 async function main() {
