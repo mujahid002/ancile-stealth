@@ -35,9 +35,21 @@ const onAncileRoute = async (runtime: Runtime<Config>, payload: HTTPPayload): Pr
   let nestedPayloadBytes: `0x${string}`;
 
   // ==========================================
+  // ROUTE 1: REGISTRATION
+  // ==========================================
+  if (actionType === 1) {
+    runtime.log(`👤 Compiling REGISTRATION for: ${data.registrant}`);
+    const ruleEnum = data.rules.requiresWorldID ? 1 : 0;
+    nestedPayloadBytes = encodeAbiParameters(
+      parseAbiParameters("address, uint256, bytes, bytes, uint8"),
+      [data.registrant, BigInt(data.schemeId), data.signature, data.stealthMetaAddressRaw, ruleEnum]
+    );
+  } 
+
+  // ==========================================
   // ROUTE 2: P2P DISPATCH (Alice -> Stealth)
   // ==========================================
-  if (actionType === 2) {
+  else if (actionType === 2) {
     runtime.log(`💸 Compiling P2P DISPATCH to Stealth Address: ${data.stealthAddress}`);
     const amount = BigInt(data.amount);
 

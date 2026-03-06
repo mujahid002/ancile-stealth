@@ -15922,7 +15922,11 @@ var onAncileRoute = async (runtime2, payload) => {
     runtime2.log("✅ Sender verified as unique human!");
   }
   let nestedPayloadBytes;
-  if (actionType === 2) {
+  if (actionType === 1) {
+    runtime2.log(`\uD83D\uDC64 Compiling REGISTRATION for: ${data.registrant}`);
+    const ruleEnum = data.rules.requiresWorldID ? 1 : 0;
+    nestedPayloadBytes = encodeAbiParameters(parseAbiParameters("address, uint256, bytes, bytes, uint8"), [data.registrant, BigInt(data.schemeId), data.signature, data.stealthMetaAddressRaw, ruleEnum]);
+  } else if (actionType === 2) {
     runtime2.log(`\uD83D\uDCB8 Compiling P2P DISPATCH to Stealth Address: ${data.stealthAddress}`);
     const amount = BigInt(data.amount);
     const p2pAbi = [{

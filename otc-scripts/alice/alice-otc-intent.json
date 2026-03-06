@@ -1,0 +1,14 @@
+{
+  "maker": "Alice",
+  "giveToken": "0xACe12122c758bfDcAa449846ef14892fEC22a93C",
+  "giveAmount": "1000000000",
+  "wantToken": "0x9bBd94c7c3E16B78A6BC171bda7a626AA6D5Df67",
+  "wantAmount": "500000000",
+  "counterparty": "0xb5165E6B4066A4D68a2205752CC533f9D3c95B42",
+  "stealthMetaAddress": "0x034312554ee9167ab3deb50e347bb25899dac86bc60650ad75df6ae47a74ffa3a00353674d4625c95c7267ce835292a77c9e2b2fed9f79a97f82fdc12f6e89c82ee3",
+  "permit": {
+    "owner": "0x8a52a28861990cd173F3Ef8FD20caC84BFA4236d",
+    "deadline": "1772729849",
+    "signature": "0x549b1a68c988833d414472fe167755e7cde12d070efe19e93722b52ca467860d3aa6b774a59dc1302354109a1112994dbe2d36a6bda39fc80e99cc6706e75d7a1c"
+  }
+}

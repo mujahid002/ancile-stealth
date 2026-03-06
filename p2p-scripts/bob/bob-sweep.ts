@@ -4,7 +4,7 @@ import { baseSepolia } from "viem/chains";
 import { computeStealthKey } from "@scopelift/stealth-address-sdk";
 import fs from "fs";
 import * as path from "path";
-import config from "../../config.json";
+import config from "../../config.p2p.json";
 
 const erc20Abi = parseAbi(["function nonces(address owner) view returns (uint256)"]);
 const routerAbi = parseAbi(["function routerNonces(address owner) external view returns (uint256)"]);
@@ -37,7 +37,7 @@ async function runBobSweep() {
 
     const permitSignature = await stealthWalletClient.signTypedData({
         account: stealthAccount,
-        domain: { name: "Mock USDC", version: "1", chainId: baseSepolia.id, verifyingContract: config.TOKEN_ADDRESS as `0x${string}` },
+        domain: { name: "MockUSDC", version: "1", chainId: baseSepolia.id, verifyingContract: config.TOKEN_ADDRESS as `0x${string}` },
         types: {
             Permit: [
                 { name: "owner", type: "address" }, { name: "spender", type: "address" },

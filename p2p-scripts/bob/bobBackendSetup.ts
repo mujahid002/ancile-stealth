@@ -5,7 +5,7 @@ import { ethers } from "ethers";
 import * as fs from "fs";
 import * as path from "path";
 
-import config from "../../config.json";
+import config from "../../config.p2p.json";
 
 const ERC6538_REGISTRY_ADDRESS = config.REGISTRY_ADDRESS as `0x${string}`;
 
@@ -46,6 +46,13 @@ async function bobBackendSetup() {
     const spendingPrivateKey = keccak256(signedMessage);
     const viewingPrivateKey = keccak256(concatHex([spendingPrivateKey, toHex(stringToBytes("viewing"))]));
 
+    // 🌟 ADDED: Log the keys so you can copy them to config.p2p.json!
+    console.log("\n🚨 STOP AND COPY THESE TO YOUR config.p2p.json 🚨");
+    console.log("==================================================");
+    console.log(`"BOB_VIEWING_KEY": "${viewingPrivateKey}",`);
+    console.log(`"BOB_SPENDING_KEY": "${spendingPrivateKey}",`);
+    console.log("==================================================\n");
+
     const spendingPublicKey = ethers.utils.computePublicKey(spendingPrivateKey, true) as `0x${string}`;
     const viewingPublicKey = ethers.utils.computePublicKey(viewingPrivateKey, true) as `0x${string}`;
 
@@ -74,7 +81,6 @@ async function bobBackendSetup() {
         }
     });
 
-    // 🌟 Load World ID proof for CRE API Verification
     const proofPath = fs.existsSync(path.resolve(__dirname, "world-id-proof.json"))
         ? path.resolve(__dirname, "world-id-proof.json")
         : path.resolve(__dirname, "../world-id-proof.json");
@@ -84,25 +90,23 @@ async function bobBackendSetup() {
     }
     
     const worldIdProof = JSON.parse(fs.readFileSync(proofPath, "utf-8"));
-    console.log("🛡️  World ID Proof loaded for Bob's registration payload.");
 
-    // Final Payload
     const newPayload = {
-        action: 1, // Wrap it properly for main.ts
+        action: 1, 
         data: {
             registrant: account.address,
             schemeId: currentSchemeIdForBob,
             stealthMetaAddressRaw: stealthMetaAddressRaw,
             signature: signature,
             rules: { requiresWorldID: true },
-            worldIdProof: worldIdProof // 🌟 Pass to CRE
+            worldIdProof: worldIdProof
         }
     };
 
     const latestPath = path.resolve(__dirname, "bob-latest-payload.json");
     fs.writeFileSync(latestPath, JSON.stringify(newPayload, null, 2));
 
-    console.log(`✅ Saved Payload to bob-latest-payload.json ready for CRE dispatch!`);
+    console.log(`✅ Saved Payload to bob-latest-payload.json`);
 }
 
 bobBackendSetup().catch(console.error);

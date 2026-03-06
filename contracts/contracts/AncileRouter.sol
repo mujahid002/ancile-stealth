@@ -9,7 +9,6 @@ interface IReceiver is IERC165 {
     function onReport(bytes calldata metadata, bytes calldata report) external;
 }
 
-// 🌟 Upgraded to include the EIP-2612 Permit function
 interface IERC20Permit {
     function permit(
         address owner,
@@ -35,13 +34,16 @@ contract AncileRouter is IReceiver {
     address public immutable registry;
     address public owner;
 
+    // 🌟 ADDED: OTC_SWAP at index 5
     enum ActionType {
         DEFAULT,
         REGISTER,
         P2P_DISPATCH,
         SWEEP,
-        SWAP
+        SWAP,
+        OTC_SWAP
     }
+
     enum ComplianceRule {
         DEFAULT,
         WORLD_ID_REQUIRED
@@ -49,7 +51,7 @@ contract AncileRouter is IReceiver {
 
     mapping(address => uint256) public creSchemeIds;
     mapping(address => ComplianceRule) public stealthRules;
-    mapping(address => uint256) public routerNonces; // Prevents replay attacks on intents
+    mapping(address => uint256) public routerNonces;
 
     event Announcement(
         uint256 indexed schemeId,
@@ -62,7 +64,7 @@ contract AncileRouter is IReceiver {
     error OnlyOwner();
 
     // ==========================================
-    // STRUCTS (Prevents "Stack Too Deep" errors)
+    // STRUCTS
     // ==========================================
     struct PermitData {
         uint256 deadline;
@@ -106,6 +108,28 @@ contract AncileRouter is IReceiver {
         IntentData intent;
     }
 
+    // 🌟 OTC Payload Struct
+    struct OTCPayload {
+        address tokenA;
+        address ownerA;
+        uint256 amountA;
+        uint256 deadlineA;
+        uint8 vA;
+        bytes32 rA;
+        bytes32 sA;
+        address stealthAddressB;
+        bytes ephemeralPubKeyB;
+        address tokenB;
+        address ownerB;
+        uint256 amountB;
+        uint256 deadlineB;
+        uint8 vB;
+        bytes32 rB;
+        bytes32 sB;
+        address stealthAddressA;
+        bytes ephemeralPubKeyA;
+    }
+
     constructor(address _forwarder, address _registry, address _owner) {
         if (_forwarder == address(0)) revert OnlyForwarder();
         forwarder = _forwarder;
@@ -113,9 +137,11 @@ contract AncileRouter is IReceiver {
         owner = _owner;
     }
 
-    // Allow the Router to receive ETH liquidity for Swaps
     receive() external payable {}
 
+    // ==========================================
+    // MAIN CRE ROUTER DECODER
+    // ==========================================
     function onReport(
         bytes calldata /* metadata */,
         bytes calldata report
@@ -130,7 +156,10 @@ contract AncileRouter is IReceiver {
         if (action == ActionType.REGISTER) _handleRegistration(payload);
         else if (action == ActionType.P2P_DISPATCH) _handleP2PDispatch(payload);
         else if (action == ActionType.SWEEP) _handleStealthSweep(payload);
-        else if (action == ActionType.SWAP) _handleStealthSwap(payload);
+        else if (action == ActionType.SWAP)
+            _handleStealthSwap(payload);
+            // 🌟 ROUTE 5: Trigger the OTC logic
+        else if (action == ActionType.OTC_SWAP) _handleOTC(payload);
     }
 
     function _handleRegistration(bytes memory payload) internal {
@@ -166,7 +195,6 @@ contract AncileRouter is IReceiver {
     function _handleP2PDispatch(bytes memory payload) internal {
         P2PPayload memory data = abi.decode(payload, (P2PPayload));
 
-        // 1. Verify Alice's Intent (Where does she want it to go?)
         bytes32 messageHash = keccak256(
             abi.encodePacked(
                 data.sender,
@@ -190,7 +218,6 @@ contract AncileRouter is IReceiver {
 
         routerNonces[data.sender]++;
 
-        // 2. Execute ERC-20 Permit (Allows Router to pull funds)
         IERC20Permit(data.token).permit(
             data.sender,
             address(this),
@@ -201,7 +228,6 @@ contract AncileRouter is IReceiver {
             data.permit.s
         );
 
-        // 3. Move Physical Tokens Directly to Stealth Address
         bool success = IERC20Permit(data.token).transferFrom(
             data.sender,
             data.stealthAddress,
@@ -223,7 +249,6 @@ contract AncileRouter is IReceiver {
     function _handleStealthSweep(bytes memory payload) internal {
         SweepPayload memory data = abi.decode(payload, (SweepPayload));
 
-        // 1. Verify Bob's Intent using derived Stealth Key
         bytes32 messageHash = keccak256(
             abi.encodePacked(
                 data.stealthAddress,
@@ -247,7 +272,6 @@ contract AncileRouter is IReceiver {
 
         routerNonces[data.stealthAddress]++;
 
-        // 2. Execute ERC-20 Permit (Allows Router to pull from Stealth Address)
         IERC20Permit(data.token).permit(
             data.stealthAddress,
             address(this),
@@ -258,7 +282,6 @@ contract AncileRouter is IReceiver {
             data.permit.s
         );
 
-        // 3. Move Physical Tokens to Binance/Cold Wallet
         bool success = IERC20Permit(data.token).transferFrom(
             data.stealthAddress,
             data.destination,
@@ -277,7 +300,6 @@ contract AncileRouter is IReceiver {
             "Router lacks ETH liquidity"
         );
 
-        // 1. Verify Bob's Intent
         bytes32 messageHash = keccak256(
             abi.encodePacked(
                 data.stealthAddress,
@@ -301,7 +323,6 @@ contract AncileRouter is IReceiver {
 
         routerNonces[data.stealthAddress]++;
 
-        // 2. Execute ERC-20 Permit
         IERC20Permit(data.token).permit(
             data.stealthAddress,
             address(this),
@@ -312,7 +333,6 @@ contract AncileRouter is IReceiver {
             data.permit.s
         );
 
-        // 3. Router pulls USDC to its own treasury
         bool success = IERC20Permit(data.token).transferFrom(
             data.stealthAddress,
             address(this),
@@ -320,11 +340,62 @@ contract AncileRouter is IReceiver {
         );
         require(success, "USDC pull failed");
 
-        // 4. Router sends Native ETH to the Stealth Address!
         (bool ethSuccess, ) = data.stealthAddress.call{
             value: data.ethOutputAmount
         }("");
         require(ethSuccess, "ETH Transfer failed");
+    }
+
+    // ==========================================
+    // ROUTE 5: OTC DARKPOOL (DOUBLE-BLIND SWAP)
+    // ==========================================
+    function _handleOTC(bytes memory payload) internal {
+        // 1. Decode the massive OTC payload
+        OTCPayload memory data = abi.decode(payload, (OTCPayload));
+
+        // 2. Consume Alice's Permit (Token A)
+        IERC20Permit(data.tokenA).permit(
+            data.ownerA,
+            address(this),
+            data.amountA,
+            data.deadlineA,
+            data.vA,
+            data.rA,
+            data.sA
+        );
+
+        // 3. Consume Bob's Permit (Token B)
+        IERC20Permit(data.tokenB).permit(
+            data.ownerB,
+            address(this),
+            data.amountB,
+            data.deadlineB,
+            data.vB,
+            data.rB,
+            data.sB
+        );
+
+        // 4. The Atomic Cross-Swap
+        require(
+            IERC20Permit(data.tokenA).transferFrom(
+                data.ownerA,
+                data.stealthAddressB,
+                data.amountA
+            ),
+            "Ancile: Token A transfer failed"
+        );
+        require(
+            IERC20Permit(data.tokenB).transferFrom(
+                data.ownerB,
+                data.stealthAddressA,
+                data.amountB
+            ),
+            "Ancile: Token B transfer failed"
+        );
+
+        // 5. Emit standard ERC-5564 Announcements (using the correct 4-parameter signature)
+        emit Announcement(1, data.stealthAddressB, data.ephemeralPubKeyB, "");
+        emit Announcement(1, data.stealthAddressA, data.ephemeralPubKeyA, "");
     }
 
     function supportsInterface(

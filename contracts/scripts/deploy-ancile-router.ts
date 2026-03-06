@@ -1,48 +1,69 @@
 import { network } from "hardhat";
 const { ethers } = await network.connect();
-import config from "../../config.json";
+import config from "../../config.p2p.json";
 
 async function main() {
     const [deployer] = await ethers.getSigners();
     console.log("Deployer:", deployer.address);
 
-    const MockToken = await ethers.getContractFactory("MockToken");
-    const token = await MockToken.deploy("Mock USDC", "mUSDC", deployer.address);
-    await token.waitForDeployment();
-    const tokenAddress = await token.getAddress();
-    // const tokenAddress = config.TOKEN_ADDRESS;
-    console.log("MockToken (mUSDC):", tokenAddress);
+    // ==========================================
+    // 1. DEPLOY & MINT TOKEN A (mUSDC FOR ALICE)
+    // ==========================================
+    const MockUSDC = await ethers.getContractFactory("MockUSDC");
+    const tokenA = await MockUSDC.deploy("MockUSDC", "mUSDC", deployer.address);
+    await tokenA.waitForDeployment();
+    const tokenAAddress = await tokenA.getAddress();
+    
+    // Alice gets 1,000 mUSDC
+    const mintAmountA = ethers.parseUnits("1000", 6);
+    await (await (tokenA as any).mint(config.ALICE_PUBLIC_ADDRESS, mintAmountA)).wait();
+    console.log("✅ Minted 1,000 mUSDC to Alice at:", tokenAAddress);
 
-    const mintAmount = ethers.parseUnits("1000", 6);
-    const tokenWithMint = token as Awaited<ReturnType<typeof MockToken.deploy>> & {
-        mint(to: string, amount: bigint): Promise<{ wait: () => Promise<unknown> }>;
-    };
-    await (await tokenWithMint.mint(config.ALICE_PUBLIC_ADDRESS as `0x${string}`, mintAmount)).wait();
-    console.log("Minted 1,000 mUSDC to Alice");
+    // ==========================================
+    // 2. DEPLOY & MINT TOKEN B (mWLD FOR BOB)
+    // ==========================================
+    const MockWLD = await ethers.getContractFactory("MockWLD");
+    const tokenB = await MockWLD.deploy("MockWLD", "mWLD", deployer.address);
+    await tokenB.waitForDeployment();
+    const tokenBAddress = await tokenB.getAddress();
 
+    // Bob gets 500 mWLD (Using 6 decimals as defined in your mock contract)
+    const mintAmountB = ethers.parseUnits("500", 6);
+    await (await (tokenB as any).mint(config.BOB_PUBLIC_ADDRESS, mintAmountB)).wait();
+    console.log("✅ Minted 500 mWLD to Bob at:", tokenBAddress);
+
+    // ==========================================
+    // 3. DEPLOY ANCILE ROUTER
+    // ==========================================
     const forwarderAddress = config.FORWARDER_BASE_SEPOLIA;
-    const AncileVaultRouter = await ethers.getContractFactory("AncileRouter");
+    const AncileRouter = await ethers.getContractFactory("AncileRouter");
 
-    // World ID is verified in CRE via API; contract only needs forwarder, registry, admin
-    const router = await (AncileVaultRouter as any).deploy(
+    const router = await AncileRouter.deploy(
         forwarderAddress,
         config.REGISTRY_ADDRESS,
         deployer.address
     );  
     await router.waitForDeployment();
     const routerAddress = await router.getAddress();
-    console.log("AncileVaultRouter deployed (use this as router):", routerAddress);
+    console.log("✅ AncileRouter deployed to:", routerAddress);
 
-    console.log("\n---");
-    console.log("Router (receiver):", routerAddress);
-    console.log("Token:", tokenAddress);
-    console.log("Alice:", config.ALICE_PUBLIC_ADDRESS);
-    console.log("Bob:", config.BOB_PUBLIC_ADDRESS);
-    console.log("\nNext: set receiverAddress / ROUTER_ADDRESS to", routerAddress);
-
-    const tx = await router.bobSetup(config.BOB_PUBLIC_ADDRESS, config.CURRENT_SCHEME_ID_FOR_BOB, 1);
+    // ==========================================
+    // 4. ROUTER SETUP
+    // ==========================================
+    let tx = await (router as any).bobSetup(config.BOB_PUBLIC_ADDRESS, config.CURRENT_SCHEME_ID_FOR_BOB, 1);
     await tx.wait();
-    console.log("Bob setup tx:", tx.hash);
+    console.log("✅ Bob setup complete! Tx:", tx.hash);
+    tx = await (router as any).bobSetup(config.ALICE_PUBLIC_ADDRESS, config.CURRENT_SCHEME_ID_FOR_BOB, 1);
+    await tx.wait();
+    console.log("✅ Alice setup complete! Tx:", tx.hash);
+
+    // ==========================================
+    // 5. SUMMARY (COPY THESE TO YOUR CONFIG)
+    // ==========================================
+    console.log("\n🔥 --- DEPLOYMENT SUMMARY --- 🔥");
+    console.log(`"ROUTER_ADDRESS": "${routerAddress}",`);
+    console.log(`"MOCK_USDC_ADDRESS": "${tokenAAddress}", // This is mUSDC`);
+    console.log(`"MOCK_WLD_ADDRESS": "${tokenBAddress}", // This is mWLD (Update your config key if needed)`);
 }
 
 main().catch((e) => {

@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import config from "../../config.json";
+import config from "../../config.p2p.json";
 
 
 async function verifyAliceBalance() {

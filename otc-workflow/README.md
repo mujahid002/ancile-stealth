@@ -1,5 +1,9 @@
 # P2P Workflow (Ancile Stealth Registration)
 
+Sample txns:
+1. Alice to Bob's one time stealth address using permit: https://sepolia.basescan.org/tx/0x243213b3e874e0cdd377c81471b1fb37cb0259d61c0984397c70dc7f2993ea3c
+2. Bobs withdraws tokens from stealth address to other using permit: https://sepolia.basescan.org/tx/0xa748ffb7181d0fb08707800aedc7f55116a54c0e8b18434a8456564bd2642693
+
 This template provides a simple Typescript workflow example. It shows how to create a simple "Hello World" workflow using Typescript.
 
 Steps to run the example
@@ -13,7 +17,7 @@ If your workflow does not do any chain write then you can just put any dummy key
 CRE_ETH_PRIVATE_KEY=0000000000000000000000000000000000000000000000000000000000000001
 ```
 
-Note: Make sure your `workflow.yaml` file is pointing to the config.json, example:
+Note: Make sure your `workflow.yaml` file is pointing to the config.p2p.json, example:
 
 ```yaml
 staging-settings:
@@ -21,7 +25,7 @@ staging-settings:
     workflow-name: "hello-world"
   workflow-artifacts:
     workflow-path: "./main.ts"
-    config-path: "./config.json"
+    config-path: "./config.p2p.json"
 ```
 
 ## 2. Install dependencies

@@ -1,0 +1,14 @@
+{
+  "maker": "Bob",
+  "giveToken": "0x9bBd94c7c3E16B78A6BC171bda7a626AA6D5Df67",
+  "giveAmount": "500000000",
+  "wantToken": "0xACe12122c758bfDcAa449846ef14892fEC22a93C",
+  "wantAmount": "1000000000",
+  "counterparty": "0x8a52a28861990cd173F3Ef8FD20caC84BFA4236d",
+  "stealthMetaAddress": "0x03c2ed1f2dd79511bc7cf8eb33977e944eb8a230573ed46bbe598f7b6acfde4ab302f72edcfdcc494bc2b515ab502bbd92a4a972e0b926b3a55c34411e41dc32907b",
+  "permit": {
+    "owner": "0xb5165E6B4066A4D68a2205752CC533f9D3c95B42",
+    "deadline": "1772729855",
+    "signature": "0xe157c35e7027a12d50a16cd00b8a72ff52ec56d5b2269946c8941f13d975db8b37f3ab2aaf76a683725943d8760cf72572abe6b7268d85c592e5c33966a9aabc1c"
+  }
+}

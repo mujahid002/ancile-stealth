@@ -1,10 +1,10 @@
 {
   "action": 1,
   "data": {
-    "registrant": "0xb5165E6B4066A4D68a2205752CC533f9D3c95B42",
+    "registrant": "0x8a52a28861990cd173F3Ef8FD20caC84BFA4236d",
     "schemeId": 13,
-    "stealthMetaAddressRaw": "0x03c2ed1f2dd79511bc7cf8eb33977e944eb8a230573ed46bbe598f7b6acfde4ab302f72edcfdcc494bc2b515ab502bbd92a4a972e0b926b3a55c34411e41dc32907b",
-    "signature": "0xcfb7917173c368129c5373d6e020df51f59c807ac56675fb61408f6243f885a32af6bd8133bb620b5b46f91f6dcaef329adfb1a3b405e006b22041dd88150f211b",
+    "stealthMetaAddressRaw": "0x034312554ee9167ab3deb50e347bb25899dac86bc60650ad75df6ae47a74ffa3a00353674d4625c95c7267ce835292a77c9e2b2fed9f79a97f82fdc12f6e89c82ee3",
+    "signature": "0x7eafff004712d5303a6ba8e07911dacca3cccd88d7d46675100401a35eeed4202e8e686ee56bcdbccd0ce305c05991edeac51666730765e26d70b3f1b8426a3e1c",
     "rules": {
       "requiresWorldID": true
     },

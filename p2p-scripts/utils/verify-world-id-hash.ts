@@ -3,7 +3,7 @@
  * so you can confirm your proof was generated with matching app_id, action, and signal.
  *
  * Run: npx tsx scripts/utils/verify-world-id-hash.ts
- * Uses config.json from repo root (APP_ID, ACTION_ID, ALICE_PUBLIC_ADDRESS) or env.
+ * Uses config.p2p.json from repo root (APP_ID, ACTION_ID, ALICE_PUBLIC_ADDRESS) or env.
  */
 
 import { keccak256, stringToHex, type Hex } from "viem";
@@ -11,7 +11,7 @@ import * as path from "path";
 import * as fs from "fs";
 
 function loadConfig(): { APP_ID: string; ACTION_ID: string; ALICE_PUBLIC_ADDRESS: string } {
-  const configPath = path.resolve(__dirname, "../../config.json");
+  const configPath = path.resolve(__dirname, "../../config.p2p.json");
   if (fs.existsSync(configPath)) {
     const c = JSON.parse(fs.readFileSync(configPath, "utf-8"));
     return {
@@ -48,7 +48,7 @@ function computeSignalHash(senderAddress: string): bigint {
 function main() {
   const { APP_ID, ACTION_ID, ALICE_PUBLIC_ADDRESS } = loadConfig();
   if (!APP_ID || !ACTION_ID) {
-    console.error("Set APP_ID and ACTION_ID in config.json or env.");
+    console.error("Set APP_ID and ACTION_ID in config.p2p.json or env.");
     process.exit(1);
   }
 
@@ -67,7 +67,7 @@ function main() {
     console.log("signalHash (hex):     0x" + signalHash.toString(16));
     console.log("\nWhen generating the proof, use Signal = Alice's address (above) so the proof's signal_hash matches.");
   } else {
-    console.log("\nSet ALICE_PUBLIC_ADDRESS in config.json to see signalHash for the transfer sender.");
+    console.log("\nSet ALICE_PUBLIC_ADDRESS in config.p2p.json to see signalHash for the transfer sender.");
   }
 
   console.log("\nEnsure the proof was generated with the same app_id and action so externalNullifierHash matches.");

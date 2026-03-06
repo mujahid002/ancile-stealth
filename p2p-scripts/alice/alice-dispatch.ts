@@ -4,7 +4,7 @@ import { baseSepolia } from "viem/chains";
 import { generateStealthAddress } from "@scopelift/stealth-address-sdk";
 import fs from "fs";
 import * as path from "path";
-import config from "../../config.json";
+import config from "../../config.p2p.json";
 
 const erc20Abi = parseAbi(["function nonces(address owner) view returns (uint256)"]);
 const routerAbi = parseAbi(["function routerNonces(address owner) external view returns (uint256)", "function creSchemeIds(address registrant) external view returns (uint256)"]);
@@ -33,11 +33,11 @@ async function runAliceDispatch() {
     const tokenNonce = await publicClient.readContract({ address: config.TOKEN_ADDRESS as `0x${string}`, abi: erc20Abi, functionName: 'nonces', args: [account.address] });
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600); // 1 hour
 
-    // ⚠️ UPDATE "MockToken" TO MATCH YOUR EXACT TOKEN NAME!
+    // ⚠️ UPDATE "MockUSDC" TO MATCH YOUR EXACT TOKEN NAME!
     const permitSignature = await walletClient.signTypedData({
         account,
-        // 🌟 FIX: Change this string to "Mock USDC"
-        domain: { name: "Mock USDC", version: "1", chainId: baseSepolia.id, verifyingContract: config.TOKEN_ADDRESS as `0x${string}` },
+        // 🌟 FIX: Change this string to "MockUSDC"
+        domain: { name: "MockUSDC", version: "1", chainId: baseSepolia.id, verifyingContract: config.TOKEN_ADDRESS as `0x${string}` },
         types: {
             Permit: [
                 { name: "owner", type: "address" }, { name: "spender", type: "address" },
