@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 interface IERC165 {
     function supportsInterface(bytes4 interfaceId) external view returns (bool);
@@ -36,21 +35,18 @@ interface IERC20Permit {
 /**
  * @title AncileRouter
  * @author @mujahid002
- * @notice A stateless, privacy-preserving router that leverages Chainlink CRE to facilitate 
+ * @notice A stateless, privacy-preserving router that leverages Chainlink CRE to facilitate
  * gasless stealth transfers, sharded OTC settlements, private swaps and more
  * @dev This contract acts as the on-chain executor for off-chain intents matched within a TEE.
  */
-contract AncileRouter is
-    Initializable,
-    UUPSUpgradeable,
-    OwnableUpgradeable,
-    IReceiver
-{
+contract AncileRouter is Initializable, UUPSUpgradeable, IReceiver {
     /// @notice The trusted Chainlink Forwarder address that is allowed to call onReport.
     address public forwarder;
 
     /// @notice The ERC-5564 Stealth Address Registry called meta addresses by ERC-6538
     address public registry;
+
+    address public owner;
 
     /// @notice Defines the specific execution route the Chainlink CRE will trigger.
     enum ActionType {
@@ -89,6 +85,8 @@ contract AncileRouter is
 
     error OnlyForwarder();
     error InvalidAction();
+    error UnauthorizedUpgrade();
+    error OnlyOwner();
 
     // ==========================================
     // STRUCTS (PAYLOAD DECODING)
@@ -199,17 +197,15 @@ contract AncileRouter is
         address _registry,
         address _initialOwner
     ) public initializer {
-        __Ownable_init(_initialOwner);
-        __UUPSUpgradeable_init();
-
+        if (_forwarder == address(0)) revert OnlyForwarder();
         forwarder = _forwarder;
         registry = _registry;
+        owner = _initialOwner;
     }
 
-    /// @notice Required UUPS function to authorize upgrades. Only the owner can upgrade.
-    function _authorizeUpgrade(
-        address newImplementation
-    ) internal override onlyOwner {}
+    function _authorizeUpgrade(address) internal view override {
+        if (msg.sender != owner) revert UnauthorizedUpgrade();
+    }
 
     /// @notice Fallback to accept native ETH for router liquidity (used in private SWAPs).
     receive() external payable {}
@@ -220,10 +216,10 @@ contract AncileRouter is
 
     /// @notice The main entry point triggered exclusively by the Chainlink Forwarder.
     /// @dev Acts as a switchboard routing the encoded payload to the correct internal handler.
-    /// @param metadata Unused in this implementation, reserved for CCIP/CRE standard.
+    /// @dev metadata Unused in this implementation, reserved for CCIP/CRE standard.
     /// @param report The ABI encoded payload containing the ActionType and nested logic data.
     function onReport(
-        bytes calldata metadata,
+        bytes calldata /* metadata */,
         bytes calldata report
     ) external override {
         if (msg.sender != forwarder) revert OnlyForwarder();
@@ -238,7 +234,8 @@ contract AncileRouter is
         else if (action == ActionType.SWEEP) _handleStealthSweep(payload);
         else if (action == ActionType.SWAP) _handleStealthSwap(payload);
         else if (action == ActionType.OTC_SWAP) _handleOTC(payload);
-        else if (action == ActionType.MEGA_BATCH_OTC) _handleMegaBatchOTC(payload);
+        else if (action == ActionType.MEGA_BATCH_OTC)
+            _handleMegaBatchOTC(payload);
         else if (action == ActionType.BATCH_SWEEP) _handleBatchSweep(payload);
         else revert InvalidAction();
     }
@@ -589,7 +586,8 @@ contract AncileRouter is
         address registrant,
         uint256 schemeId,
         ComplianceRule rule
-    ) external onlyOwner {
+    ) external {
+        if (msg.sender != owner) revert OnlyOwner();
         stealthRules[registrant] = rule;
         creSchemeIds[registrant] = schemeId;
     }
