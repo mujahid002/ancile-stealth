@@ -13,7 +13,7 @@ contract MockUSDC is ERC20, ERC20Permit, Ownable {
         string memory symbol_,
         address owner_
     ) ERC20(name_, symbol_) ERC20Permit(name_) Ownable(owner_) payable {
-        _mint(owner_, 10_000_000 * 10 ** 6); // 10M tokens when decimals = 6
+        _mint(owner_, 10_000_000 * 10 ** 6);
     }
 
     /// @notice Mint tokens to a specified address. Only the owner can mint.
