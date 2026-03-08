@@ -580,15 +580,4 @@ contract AncileRouter is Initializable, UUPSUpgradeable, IReceiver {
             interfaceId == type(IReceiver).interfaceId ||
             interfaceId == type(IERC165).interfaceId;
     }
-
-    /// @notice FOR TESTING
-    function accountSetup(
-        address registrant,
-        uint256 schemeId,
-        ComplianceRule rule
-    ) external {
-        if (msg.sender != owner) revert OnlyOwner();
-        stealthRules[registrant] = rule;
-        creSchemeIds[registrant] = schemeId;
-    }
 }

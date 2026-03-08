@@ -15913,7 +15913,7 @@ var onAncileRoute = async (runtime2, payload) => {
   const rawPayload = decodeJson(payload.input);
   let actionType = Number(rawPayload.action);
   let data = rawPayload.data;
-  if (actionType === 2) {
+  if (actionType === 1 || actionType === 2) {
     if (!data.worldIdProof)
       throw new Error("❌ Access Denied: Receiver requires World ID verification.");
     const bodyBase64 = typeof Buffer !== "undefined" ? Buffer.from(JSON.stringify(data.worldIdProof), "utf8").toString("base64") : btoa(unescape(encodeURIComponent(JSON.stringify(data.worldIdProof))));

@@ -251,9 +251,23 @@ cd p2p-scripts && npm install && cd ..
 cd otc-scripts && npm install && cd ..
 ```
 
-### Configure `config.json`
+### Configure environment files
 
-All contract addresses are pre-filled — **only fill in your RPC URL and wallet keys:**
+**Step 1 — `.env`** (copy from `.env.example` — needed for CRE workflow deployment only):
+
+```bash
+cp .env.example .env
+```
+
+```
+CRE_ETH_PRIVATE_KEY=0x...   # wallet that funds CRE gas
+BASE_SEPOLIA_RPC_URL=https://sepolia.base.org
+CRE_TARGET=staging-settings
+```
+
+> If you are only running the demo scripts against the already-deployed CRE workflows, you can skip this file.
+
+**Step 2 — `config.json`** (for all demo scripts — contract addresses are pre-filled):
 
 ```json
 {
@@ -299,12 +313,12 @@ Bob only does this once. It registers his ERC-5564 Meta-Address on-chain and set
 
 ```bash
 # Terminal 1: Start the World ID Relying Party signing server
-npm run serve-rp
+npm run setup:1-local-serve-rp
 # -> Starts HTTP server at localhost:3000
 # -> POST /save-proof saves proofs as {address}-world-proof.json
 
 # Terminal 2: Open the World ID proof generator UI
-npm run world-id-generator
+npm run setup:2-local-world-id-ui
 # -> Opens world-id-generator.html in your browser
 # -> Enter Bob's wallet address as the signal
 # -> Scan the QR code with the World ID Simulator app
@@ -312,7 +326,7 @@ npm run world-id-generator
 # -> File saved: ./0x{BOB_ADDRESS}-world-proof.json
 
 # Generate Bob's stealth keypair + registration payload
-npm run bob-setup
+npm run p2p:1-bob-local-setup
 # -> Signs a static message with Bob's wallet to derive spending/viewing keys:
 #     spendingKey = keccak256(walletSignature)
 #     viewingKey  = keccak256(spendingKey ‖ "viewing")
@@ -321,7 +335,7 @@ npm run bob-setup
 # -> Output: p2p-scripts/bob/bob-latest-payload.json
 
 # Submit to Chainlink CRE -> AncileRouter
-npm run ancile-bob-setup
+npm run p2p:2-cre-register-bob
 # CRE executes:
 #   1. Validates World ID ZK proof (Semaphore nullifier check)
 #   2. Encodes REGISTER payload with Bob's meta-address + ComplianceRule.WORLD_ID_REQUIRED
@@ -335,7 +349,7 @@ npm run ancile-bob-setup
 
 ```bash
 # Alice builds her dispatch payload (no ETH required from Alice)
-npm run alice-p2p-dispatch
+npm run p2p:3-alice-local-dispatch
 # -> Reads Bob's registered meta-address from ERC-6538 registry on-chain
 # -> Derives a one-time stealth address for Bob using secp256k1 ECDH:
 #     sharedSecret = alice_ephemeral_private * bob_spending_public
@@ -348,7 +362,7 @@ npm run alice-p2p-dispatch
 # -> Output: p2p-scripts/alice/alice-latest-payload.json
 
 # Submit to Chainlink CRE -> AncileRouter
-npm run ancile-transfer-alice-to-bob
+npm run p2p:4-cre-execute-transfer
 # CRE executes:
 #   1. Reads Bob's complianceRules[bob] from chain
 #   2. Verifies Alice's World ID proof (rule: WORLD_ID_REQUIRED)
@@ -371,7 +385,7 @@ Bob's stealth address holds mUSDC but 0 ETH. He signs everything locally using o
 
 ```bash
 # Bob builds his sweep payload (stealth private key signs: NOT Bob's main wallet)
-npm run bob-p2p-sweep
+npm run p2p:5-bob-local-sweep
 # -> Rederives stealth private key from Bob's wallet sig (deterministic):
 #     stealthKey = computeStealthKey(ephemeralPubKey, viewingKey, spendingKey)
 # -> Reads stealth address's current ERC20 nonce on-chain
@@ -382,8 +396,8 @@ npm run bob-p2p-sweep
 # -> Output: p2p-scripts/bob/bob-sweep-payload.json
 
 # Submit to Chainlink CRE -> AncileRouter
-npm run ancile-p2p-bob-sweep
-# CRE routes to ActionType.BATCH_SWEEP (7)
+npm run p2p:6-cre-execute-sweep
+# CRE routes to ActionType.SWEEP (3)
 # AncileRouter executes:
 #   1. ecrecover(intentHash) == stealthAddress  ✓
 #   2. routerNonces[stealthAddress]++
@@ -407,7 +421,7 @@ npm run ancile-p2p-bob-sweep
 ### Phase 1: One-Time Registration (Both Parties)
 
 ```bash
-npm run alice-setup && npm run ancile-alice-setup
+npm run otc:1-alice-local-setup && npm run otc:2-cre-register-alice
 # Same as Bob's setup above: Alice registers her ERC-5564 meta-address
 # Only required once; skip if already registered
 ```
@@ -416,7 +430,7 @@ npm run alice-setup && npm run ancile-alice-setup
 
 ```bash
 # Alice: give 1000 mUSDC, want 500 mWLD
-npm run alice-otc-ask
+npm run otc:3-alice-local-ask
 # -> Generates 5 random ephemeral keypairs (ghost wallets)
 # -> Saves private keys: otc-scripts/alice/alice-shards.json  ← KEEP THIS
 # -> Reads Alice's current ERC20 nonce from chain
@@ -425,11 +439,11 @@ npm run alice-otc-ask
 # -> Output: otc-scripts/alice/alice-otc-intent.json
 
 # Bob: give 500 mWLD, want 1000 mUSDC
-npm run bob-otc-bid
+npm run otc:4-bob-local-bid
 # -> Same process for Bob: bob-shards.json + bob-otc-intent.json
 
 # Bundle both intents into one master payload
-npm run ancile-bundle-otc
+npm run otc:5-local-bundle-otc
 # -> Reads alice-otc-intent.json + bob-otc-intent.json
 # -> Merges into otc-workflow/master-otc.json
 # -> Structure:
@@ -444,7 +458,7 @@ npm run ancile-bundle-otc
 ### Phase 3: CRE Executes Mega-Batch OTC
 
 ```bash
-npm run ancile-otc
+npm run otc:6-cre-execute-megabatch
 # CRE (otc-workflow/main.ts) reads master-otc.json:
 #   1. Detects no stealthAddress field -> routes to MEGA_BATCH_OTC (6)
 #   2. Builds PermitPull[]: one per party:
@@ -478,7 +492,7 @@ Alice's 5 ghost wallets each hold 100 mWLD. Bob's 5 each hold 200 mUSDC. Both sw
 
 ```bash
 # Alice signs sweep intents for her 5 mWLD ghost wallets
-npm run alice-otc-sweep-intent
+npm run otc:7-alice-local-sweep
 # -> Reads alice-shards.json (the private keys from Phase 2)
 # -> For each shard:
 #     checkBalance(ghost_Ai, mWLD): skip if 0
@@ -489,17 +503,17 @@ npm run alice-otc-sweep-intent
 # -> Output: otc-scripts/alice/alice-sweep-bundle.json
 
 # Bob signs sweep intents for his 5 mUSDC ghost wallets
-npm run bob-otc-sweep-intent
+npm run otc:8-bob-local-sweep
 # -> Same process for bob-shards.json
 # -> Output: otc-scripts/bob/bob-sweep-bundle.json
 
 # Bundle both sweep payloads
-npm run ancile-bundle-sweeps
+npm run otc:9-local-bundle-sweeps
 # -> Merges alice-sweep-bundle + bob-sweep-bundle
 # -> Output: otc-workflow/master-sweep.json (flat array of SweepEntry objects)
 
 # CRE executes BATCH_SWEEP
-npm run ancile-otc-sweep
+npm run otc:10-cre-execute-batch-sweep
 # CRE reads master-sweep.json:
 #   1. Detects stealthAddress field -> routes to BATCH_SWEEP (7)
 #   2. Submits single transaction with all 10 sweep entries

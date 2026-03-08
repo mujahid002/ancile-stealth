@@ -18149,7 +18149,7 @@ var onAncileRoute = async (runtime2, payload) => {
       ]
     }];
     const payloadBytes = encodeAbiParameters(sweepAbi, [formattedSweeps]);
-    finalCallData = encodeAbiParameters(parseAbiParameters("uint256, bytes"), [7n, payloadBytes]);
+    finalCallData = encodeAbiParameters(parseAbiParameters("uint8, bytes"), [7, payloadBytes]);
   } else {
     runtime2.log("\uD83E\uDD1D Initializing Ancile Mega-Batch Router...");
     logPrefix = "Mega-Batch OTC";
@@ -18179,7 +18179,7 @@ var onAncileRoute = async (runtime2, payload) => {
       { type: "tuple[]", components: [{ name: "token", type: "address" }, { name: "to", type: "address" }, { name: "amount", type: "uint256" }] }
     ];
     const nestedPayloadBytes = encodeAbiParameters(batchAbi, [pulls, pushes]);
-    finalCallData = encodeAbiParameters(parseAbiParameters("uint256, bytes"), [6n, nestedPayloadBytes]);
+    finalCallData = encodeAbiParameters(parseAbiParameters("uint8, bytes"), [6, nestedPayloadBytes]);
   }
   const evmConfig = runtime2.config.evms[0];
   const network248 = getNetwork({ chainFamily: "evm", chainSelectorName: evmConfig.chainSelectorName, isTestnet: evmConfig.isTestnet !== false });

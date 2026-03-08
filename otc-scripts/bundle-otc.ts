@@ -34,7 +34,6 @@ async function bundleShardedOTC() {
 
     console.log(`✅ Master payload successfully bundled at: ${masterPath}`);
     console.log(`\n🎉 You are ready to execute the Darkpool!`);
-    console.log(`➡️ Run: cre workflow simulate ./otc-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload "$(cat ./otc-workflow/master-otc.json)" --broadcast`);
 }
 
 bundleShardedOTC().catch(console.error);

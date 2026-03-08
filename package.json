@@ -3,28 +3,25 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "serve-rp": "npx tsx serve-rp-signature.ts",
-    "world-id-generator": "npx serve .",
-    "bob-setup": "npx tsx p2p-scripts/bob/bob-setup.ts",
-    "ancile-bob-setup": "cre workflow simulate ./p2p-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload \"$(cat p2p-scripts/bob/bob-latest-payload.json)\" --broadcast",
-    "alice-p2p-dispatch": "npx tsx p2p-scripts/alice/alice-dispatch.ts",
-    "ancile-transfer-alice-to-bob": "cre workflow simulate ./p2p-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload \"$(cat p2p-scripts/alice/alice-latest-payload.json)\" --broadcast",
-    "bob-p2p-sweep": "npx tsx p2p-scripts/bob/bob-sweep.ts",
-    "ancile-p2p-bob-sweep": "cre workflow simulate ./p2p-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload \"$(cat p2p-scripts/bob/bob-sweep-payload.json)\" --broadcast",
+    "setup:1-local-serve-rp": "npx tsx serve-rp-signature.ts",
+    "setup:2-local-world-id-ui": "npx serve .",
+    "p2p:1-bob-local-setup": "npx tsx p2p-scripts/bob/bob-setup.ts",
+    "p2p:2-cre-register-bob": "cre workflow simulate ./p2p-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload \"$(cat p2p-scripts/bob/bob-latest-payload.json)\" --broadcast",
+    "p2p:3-alice-local-dispatch": "npx tsx p2p-scripts/alice/alice-dispatch.ts",
+    "p2p:4-cre-execute-transfer": "cre workflow simulate ./p2p-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload \"$(cat p2p-scripts/alice/alice-latest-payload.json)\" --broadcast",
+    "p2p:5-bob-local-sweep": "npx tsx p2p-scripts/bob/bob-sweep.ts",
+    "p2p:6-cre-execute-sweep": "cre workflow simulate ./p2p-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload \"$(cat p2p-scripts/bob/bob-sweep-payload.json)\" --broadcast",
     
-    "alice-setup": "npx tsx otc-scripts/alice/alice-setup.ts",
-    "ancile-alice-setup": "cre workflow simulate ./p2p-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload \"$(cat otc-scripts/alice/alice-latest-payload.json)\" --broadcast",
-    
-    "alice-otc-ask": "npx tsx otc-scripts/alice/create-otc-ask.ts",
-    "bob-otc-bid": "npx tsx otc-scripts/bob/create-otc-bid.ts",
-    "ancile-bundle-otc": "npx tsx otc-scripts/bundle-otc.ts",
-    "ancile-otc": "cre workflow simulate ./otc-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload \"$(cat ./otc-workflow/master-otc.json)\" --broadcast",
-    
-    "alice-otc-sweep-intent": "npx tsx otc-scripts/alice/create-sweep-intent.ts",
-    "bob-otc-sweep-intent": "npx tsx otc-scripts/bob/create-sweep-intent.ts",
-    "ancile-bundle-sweeps": "npx tsx otc-scripts/bundle-sweeps.ts",
-    "ancile-otc-sweep": "cre workflow simulate ./otc-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload \"$(cat ./otc-workflow/master-sweep.json)\" --broadcast"
-
+    "otc:1-alice-local-setup": "npx tsx otc-scripts/alice/alice-setup.ts",
+    "otc:2-cre-register-alice": "cre workflow simulate ./p2p-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload \"$(cat otc-scripts/alice/alice-latest-payload.json)\" --broadcast",
+    "otc:3-alice-local-ask": "npx tsx otc-scripts/alice/create-otc-ask.ts",
+    "otc:4-bob-local-bid": "npx tsx otc-scripts/bob/create-otc-bid.ts",
+    "otc:5-local-bundle-otc": "npx tsx otc-scripts/bundle-otc.ts",
+    "otc:6-cre-execute-megabatch": "cre workflow simulate ./otc-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload \"$(cat ./otc-workflow/master-otc.json)\" --broadcast",
+    "otc:7-alice-local-sweep": "npx tsx otc-scripts/alice/create-sweep-intent.ts",
+    "otc:8-bob-local-sweep": "npx tsx otc-scripts/bob/create-sweep-intent.ts",
+    "otc:9-local-bundle-sweeps": "npx tsx otc-scripts/bundle-sweeps.ts",
+    "otc:10-cre-execute-batch-sweep": "cre workflow simulate ./otc-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload \"$(cat ./otc-workflow/master-sweep.json)\" --broadcast"
   },
   "dependencies": {
     "@worldcoin/idkit-core": "^4.0.9",
