@@ -60,7 +60,7 @@ const onAncileRoute = async (runtime: Runtime<Config>, payload: HTTPPayload): Pr
 
         // @ts-ignore
         const payloadBytes = encodeAbiParameters(sweepAbi, [formattedSweeps]);
-        finalCallData = encodeAbiParameters(parseAbiParameters("uint256, bytes"), [7n, payloadBytes]);
+        finalCallData = encodeAbiParameters(parseAbiParameters("uint8, bytes"), [7, payloadBytes]);
 
     } else {
         // ==========================================
@@ -105,7 +105,7 @@ const onAncileRoute = async (runtime: Runtime<Config>, payload: HTTPPayload): Pr
 
         // @ts-ignore
         const nestedPayloadBytes = encodeAbiParameters(batchAbi, [pulls, pushes]);
-        finalCallData = encodeAbiParameters(parseAbiParameters("uint256, bytes"), [6n, nestedPayloadBytes]);
+        finalCallData = encodeAbiParameters(parseAbiParameters("uint8, bytes"), [6, nestedPayloadBytes]);
     }
 
     // ==========================================
