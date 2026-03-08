@@ -1,6 +1,6 @@
 import { network } from "hardhat";
 const { ethers } = await network.connect();
-import config from "../../config.p2p.json";
+import config from "../../config.json";
 
 async function main() {
     const [deployer] = await ethers.getSigners();
@@ -34,13 +34,15 @@ async function main() {
     await (await (tokenB as any).mint(config.BOB_PUBLIC_ADDRESS, mintAmountB)).wait();
     console.log("✅ Minted 1M mWLD to Bob at:", tokenBAddress);
 
+    // const tokenAAddress = config.MOCK_USDC_ADDRESS;
+    // const tokenBAddress = config.MOCK_WLD_ADDRESS;
+
     // ==========================================
     // DEPLOY ANCILE ROUTER IMPLEMENTATION
     // ==========================================
     console.log("\n🚀 Deploying AncileRouter Implementation...");
     const AncileRouter = await ethers.getContractFactory("AncileRouter");
-    
-    // FIX: Implementation takes NO arguments because of _disableInitializers()
+
     const impl = await AncileRouter.deploy();
     
     await impl.waitForDeployment();
@@ -61,7 +63,7 @@ async function main() {
     ]);
 
     // Deploy the standard OpenZeppelin Proxy pointing to our implementation
-    const ERC1967Proxy = await ethers.getContractFactory("ERC1967Proxy");
+    const ERC1967Proxy = await ethers.getContractFactory("ProxyImport");
     const proxy = await ERC1967Proxy.deploy(implAddress, initData);
     await proxy.waitForDeployment();
     const proxyAddress = await proxy.getAddress();
@@ -74,19 +76,16 @@ async function main() {
     // Attach the AncileRouter ABI to the newly deployed Proxy address
     const router = await ethers.getContractAt("AncileRouter", proxyAddress);
 
-    let tx = await (router as any).accountSetup(config.BOB_PUBLIC_ADDRESS, config.CURRENT_SCHEME_ID_FOR_BOB, 1);
+    let tx = await (router as any).accountSetup(config.BOB_PUBLIC_ADDRESS, config.ANCILE_SCHEME_ID_FOR_ACCOUNT_SETUP, 1);
     await tx.wait();
     console.log("✅ Bob setup complete! Tx:", tx.hash);
 
-    tx = await (router as any).accountSetup(config.ALICE_PUBLIC_ADDRESS, config.CURRENT_SCHEME_ID_FOR_BOB, 1);
+    tx = await (router as any).accountSetup(config.ALICE_PUBLIC_ADDRESS, config.ANCILE_SCHEME_ID_FOR_ACCOUNT_SETUP, 1);
     await tx.wait();
     console.log("✅ Alice setup complete! Tx:", tx.hash);
 
-    // ==========================================
-    // SUMMARY (COPY THESE TO YOUR CONFIG)
-    // ==========================================
     console.log("\n🔥 --- DEPLOYMENT SUMMARY --- 🔥");
-    console.log(`"ROUTER_ADDRESS": "${proxyAddress}", // <-- Paste this into config.json`);
+    console.log(`"ROUTER_ADDRESS": "${proxyAddress}", // <-- Paste these into config.json`);
     console.log(`"MOCK_USDC_ADDRESS": "${tokenAAddress}",`);
     console.log(`"MOCK_WLD_ADDRESS": "${tokenBAddress}",`);
 }
