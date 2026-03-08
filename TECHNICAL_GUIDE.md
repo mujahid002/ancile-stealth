@@ -229,22 +229,20 @@ ancile-cre-stealth/
 
 ## 4. Prerequisites & Setup
 
+> **All contracts are already deployed on Base Sepolia. No deployment required to run the demos.** Just add an RPC URL and wallet keys to `config.json` and go.
+
 ### Requirements
 
 - Node.js 20+
-- [Chainlink CRE CLI](https://docs.chain.link/chainlink-cre) installed
-- Base Sepolia RPC URL (Alchemy, Infura, or public)
-- Basescan API key (for contract verification)
-- World ID Simulator app (iOS or Android): for generating ZK proofs
+- Base Sepolia RPC URL — any free provider works: [Alchemy](https://alchemy.com), [Infura](https://infura.io), or the public endpoint `https://sepolia.base.org`
+- Two funded Base Sepolia wallets (Alice + Bob) with test ETH for the CRE relayer — get from [Base Sepolia faucet](https://www.coinbase.com/faucets/base-ethereum-sepolia-faucet)
+- World ID Simulator app (iOS or Android) — for generating ZK proofs in the P2P flow
 
 ### Install Dependencies
 
 ```bash
-# Root (serve-rp server + world-id-generator)
+# Root (World ID RP server + generator UI)
 npm install
-
-# Smart contracts
-cd contracts && npm install && cd ..
 
 # P2P scripts
 cd p2p-scripts && npm install && cd ..
@@ -255,9 +253,11 @@ cd otc-scripts && npm install && cd ..
 
 ### Configure `config.json`
 
+All contract addresses are pre-filled — **only fill in your RPC URL and wallet keys:**
+
 ```json
 {
-  "BASE_SEPOLIA_RPC_URL": "https://base-sepolia.g.alchemy.com/v2/YOUR_KEY",
+  "BASE_SEPOLIA_RPC_URL": "https://sepolia.base.org",
   "ALICE_PRIVATE_KEY": "0x...",
   "BOB_PRIVATE_KEY": "0x...",
   "ROUTER_ADDRESS": "0x81c693D8Df38BfCda1a578a1733E822C12f58d2f",
@@ -267,7 +267,7 @@ cd otc-scripts && npm install && cd ..
 }
 ```
 
-### Deploy & Verify (optional: contracts already live)
+### Deploy & Verify (optional — contracts already live, skip this)
 
 ```bash
 cd contracts

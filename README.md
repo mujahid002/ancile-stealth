@@ -218,7 +218,7 @@ The architectural commitment to **stateless, non-custodial routing from day one*
 
 ---
 
-> **For step-by-step CLI execution, repository architecture, and reproduction instructions:** see [TECHNICAL_GUIDE.md](./TECHNICAL_GUIDE.md)
+> **To run the demos yourself:** all contracts are already deployed on Base Sepolia. Add a Base Sepolia RPC URL and two wallet private keys to `config.json` — that's it. Full step-by-step CLI instructions, repository architecture, and live transaction proofs: see [TECHNICAL_GUIDE.md](./TECHNICAL_GUIDE.md)
 
 *Built for the Chainlink CRE Hackathon 2026. Non-custodial. Open source. Stateless by design.*
 
