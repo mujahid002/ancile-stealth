@@ -6,18 +6,20 @@ Ethereum is radically transparent by default. While native privacy is emerging t
 
 **Ancile bridges this gap.** By leveraging the **Chainlink Runtime Environment (CRE)** as an off-chain TEE firewall, Ancile introduces a stateless, non-custodial privacy router protected by Zero-Knowledge proofs (World ID) and programmatic risk safeguards: without centralized custody or liquidity pools.
 
-> The goal: any DeFi protocol should be able to route funds privately, with custom compliance, in a single signature. No vault. No custodian. No mempool exposure.
+> The goal: any DeFi protocol should be able to route funds privately, with custom compliance, in a single signature. No vault. No custodian. No exposure.
 
 ---
 
 ## The Problem: Why Raw ERC-5564 Fails in Production
 
-| Failure Mode | What Happens in Practice |
-|---|---|
-| **The Gas Funding Trap** | A user receives tokens in a freshly derived stealth address holding 0 ETH. To withdraw or swap, they must fund it from a public exchange or their main wallet: permanently linking their identity to the stealth address. The privacy they paid for is instantly destroyed. |
-| **Permissionless Sybil Risk** | Any bot, any script, any sanctioned address can receive funds. DAOs and treasuries have no way to enforce rules on *who* receives funds. Hackers can spam stealth Announcement logs, forcing users to endlessly scan the chain for their own events. |
-| **Scanning Friction** | There is no indexed registry of "which stealth addresses belong to me." Users must scan every block and every Announcement event, performing elliptic curve math on each one to check ownership. On a busy contract, this is a dead end for mobile clients. |
-| **Dead Capital** | Funds hiding in stealth addresses sit idle. Users are forced to choose between cypherpunk-grade privacy and capital efficiency. |
+
+| Failure Mode                  | What Happens in Practice                                                                                                                                                                                                                                                    |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **The Gas Funding Trap**      | A user receives tokens in a freshly derived stealth address holding 0 ETH. To withdraw or swap, they must fund it from a public exchange or their main wallet: permanently linking their identity to the stealth address. The privacy they paid for is instantly destroyed. |
+| **Permissionless Sybil Risk** | Any bot, any script, any sanctioned address can receive funds. DAOs and treasuries have no way to enforce rules on *who* receives funds. Hackers can spam stealth Announcement logs, forcing users to endlessly scan the chain for their own events.                        |
+| **Scanning Friction**         | There is no indexed registry of "which stealth addresses belong to me." Users must scan every block and every Announcement event, performing elliptic curve math on each one to check ownership. On a busy contract, this is a dead end for mobile clients.                 |
+| **Dead Capital**              | Funds hiding in stealth addresses sit idle. Users are forced to choose between cypherpunk-grade privacy and capital efficiency.                                                                                                                                             |
+
 
 Ancile eliminates all four failure modes: without custodians, without liquidity pools, without trusted relayers.
 
@@ -30,7 +32,7 @@ User creates intent (EIP-2612 Permit + World ID ZK proof)
               │
               ▼
    ┌─────────────────────────────────────────────────────┐
-   │        Chainlink CRE: Off-Chain TEE Firewall       │
+   │        Chainlink CRE: Off-Chain TEE Firewall        │
    │                                                     │
    │  1. Verify World ID ZK proof (Sybil gate)           │
    │  2. Compute ERC-5564 stealth address (secp256k1)    │
@@ -40,7 +42,7 @@ User creates intent (EIP-2612 Permit + World ID ZK proof)
               │
               ▼
    ┌─────────────────────────────────────────────────────┐
-   │       AncileRouter.sol: Base Sepolia               │
+   │       AncileRouter.sol: Base Sepolia                │
    │                                                     │
    │  → Decodes ActionType from CRE attestation          │
    │  → Pulls funds gaslessly via EIP-2612 Permit        │
@@ -65,6 +67,7 @@ User creates intent (EIP-2612 Permit + World ID ZK proof)
 Bob wants to receive payments privately on his terms. He registers his ERC-5564 Meta-Address on-chain and sets a compliance rule: **senders must prove humanity via World ID**: eliminating bots and Sybil-spam from poisoning his stealth address log.
 
 Alice wants to pay Bob. She:
+
 1. Signs an EIP-2612 Permit authorizing the router to pull her tokens: zero ETH required
 2. Attaches her World ID ZK proof proving she is a unique human
 3. Submits the payload to the Chainlink CRE: and does nothing else
@@ -74,6 +77,7 @@ The CRE verifies Alice's ZK proof inside the TEE, computes a fresh one-time stea
 When Bob wants to withdraw, he signs a sweep intent using only the stealth private key. The CRE relays the transaction on his behalf, paying gas. **Zero ETH ever touches the stealth address.** The transaction graph is cryptographically unbreakable.
 
 **Live testnet proof:**
+
 - [P2P Bob Registration](https://sepolia.basescan.org/tx/0x7cd762efe79255343fabaa8cd0a5946a3e74f6bb7ae3e76221cc039f82aa6a2f): Bob registers Meta-Address + compliance rule
 - [P2P Transfer](https://sepolia.basescan.org/tx/0xcf2e6670a931d237c15837f2819e15c0bfa14be1d96162c8e27f1d055b34b5f8): Alice → Bob's stealth address via Permit
 - [P2P Sweep](https://sepolia.basescan.org/tx/0xcf4691a2b9bb83b843781aa70c84849df8ebc5e4c89ed9c0dc8a78fe454df59c): Bob gasless exit from stealth address, zero ETH used
@@ -96,6 +100,7 @@ Both parties generate **5 ephemeral ghost wallets each** and sign EIP-2612 Permi
 The entire settlement executes in **one atomic transaction**. There is no public mempool exposure: the matching is private inside the TEE. **Front-running is structurally impossible** because by the time the transaction hits the chain, it is already finalized. MEV bots see a completed settlement, not a pending intent. The on-chain result: zero link between Alice, Bob, and the receiving ghost wallets.
 
 **Live testnet proof:**
+
 - [OTC Alice Registration](https://sepolia.basescan.org/tx/0x5541c0992f4ebd5a7b77a29d6d00621edaadcaeabe92a626ab4409d08b2eceb0): Alice registers Meta-Address + compliance rule
 - [Standard 1-to-1 OTC](https://sepolia.basescan.org/tx/0x994697d4039a357cb789395bdb1318dd856bd9329a8a6ad912924d8a696593aa)
 - [Sharded Mega-Batch OTC](https://sepolia.basescan.org/tx/0x160b597afc57bee11495fa44d3c70bfb57e7b21efdc1ffadaf7b94b5f7414373)
@@ -154,26 +159,30 @@ World ID 4.0 (Semaphore ZK proofs) verification runs exclusively inside the Chai
 
 ### Trust Model
 
-| Component | Trust Level | Notes |
-|---|---|---|
-| `AncileRouter.sol` | Trustless | Open source, verified on Basescan, UUPS upgradeable by owner only |
-| Chainlink Forwarder | Protocol-trusted | The only address permitted to call `onReport` on-chain |
-| Chainlink CRE TEE | Hardware-attested | Off-chain compute integrity via hardware attestation |
-| World ID (Semaphore) | ZK-proven | Nullifier-based, no trusted setup, Sybil-proof by design |
-| User private keys | Self-custodied | Never transmitted: only signatures leave the user's device |
+
+| Component            | Trust Level       | Notes                                                             |
+| -------------------- | ----------------- | ----------------------------------------------------------------- |
+| `AncileRouter.sol`   | Trustless         | Open source, verified on Basescan, UUPS upgradeable by owner only |
+| Chainlink Forwarder  | Protocol-trusted  | The only address permitted to call `onReport` on-chain            |
+| Chainlink CRE TEE    | Hardware-attested | Off-chain compute integrity via hardware attestation              |
+| World ID (Semaphore) | ZK-proven         | Nullifier-based, no trusted setup, Sybil-proof by design          |
+| User private keys    | Self-custodied    | Never transmitted: only signatures leave the user's device        |
+
 
 ---
 
 ## Deployed Contracts: Base Sepolia
 
-| Contract | Address |
-|---|---|
-| AncileRouter (Proxy) | [`0x81c693D8Df38BfCda1a578a1733E822C12f58d2f`](https://sepolia.basescan.org/address/0x81c693D8Df38BfCda1a578a1733E822C12f58d2f#code) |
-| AncileRouter (Implementation) | [`0x2dA2ABAFE8013Ba940B7bEb2FfAC0757431524a9`](https://sepolia.basescan.org/address/0x2dA2ABAFE8013Ba940B7bEb2FfAC0757431524a9#code) |
-| ERC-6538 Registry | `0x6538E6bf4B0eBd30A8Ea093027Ac2422ce5d6538` |
-| Chainlink Forwarder | `0x82300bd7c3958625581cc2F77bC6464dcEcDF3e5` |
-| MockUSDC | `0x9CC99Dfedf08aE1E5347cB4CfbD57b04CAe6029D` |
-| MockWLD | `0x6D138c0d2557c2A3C978EebB258A042e9a6d6d43` |
+
+| Contract                      | Address                                                                                                                              |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| AncileRouter (Proxy)          | `[0x81c693D8Df38BfCda1a578a1733E822C12f58d2f](https://sepolia.basescan.org/address/0x81c693D8Df38BfCda1a578a1733E822C12f58d2f#code)` |
+| AncileRouter (Implementation) | `[0x2dA2ABAFE8013Ba940B7bEb2FfAC0757431524a9](https://sepolia.basescan.org/address/0x2dA2ABAFE8013Ba940B7bEb2FfAC0757431524a9#code)` |
+| ERC-6538 Registry             | `0x6538E6bf4B0eBd30A8Ea093027Ac2422ce5d6538`                                                                                         |
+| Chainlink Forwarder           | `0x82300bd7c3958625581cc2F77bC6464dcEcDF3e5`                                                                                         |
+| MockUSDC                      | `0x9CC99Dfedf08aE1E5347cB4CfbD57b04CAe6029D`                                                                                         |
+| MockWLD                       | `0x6D138c0d2557c2A3C978EebB258A042e9a6d6d43`                                                                                         |
+
 
 ---
 
@@ -183,15 +192,17 @@ The current implementation proves the **stateless routing primitive** end-to-end
 
 The next phase introduces a **lightweight vault architecture** (minimum required: a protocol-controlled ERC-4626 vault that pre-approves the router) to unlock contract-to-receiver privacy flows. This unblocks the full DeFi privacy stack:
 
-| Extension | Status | What It Unlocks | Mechanism |
-|---|---|---|---|
-| **Dark Treasury: Private Payouts** | Next milestone | DAO payroll, yield distribution, and airdrop claims that never doxx contributors | Protocol pre-approves `AncileRouter`; contributors submit World ID proof to CRE; CRE verifies + routes claim directly into a derived stealth address: contributor graph permanently private |
-| **Yield-bearing Stealth Wallets** | Requires vault | Eliminates dead capital in stealth addresses | `SWAP` action deposits incoming tokens directly into ERC-4626 vaults (sDAI, aUSDC) in the same atomic transaction |
-| **Sanctioned-Address Firewall** | CRE workflow | Institutional compliance without custodianship | Chainalysis/TRM API call inside the CRE before execution: compliance off-chain, enforcement on-chain |
-| **Private Auction Settlements** | Requires vault | MEV-free sealed-bid auctions | Bids matched entirely inside the TEE and settled atomically to ghost wallets: zero front-running by design |
-| **Cross-chain Private Transfers** | CRE workflow | Privacy across chains from a single signature | CCIP integration in the CRE workflow: private stealth transfer across any supported chain |
-| **Shielded Governance** | CRE workflow | Anonymous on-chain voting | Votes cast from stealth addresses with World ID uniqueness: one human, one vote, zero doxx |
-| **Private NFT Sales** | Router extension | ERC-721 privacy | ERC-721 + ERC-20 pulled and routed atomically: NFT sale with no buyer-seller link |
+
+| Extension                          | Status           | What It Unlocks                                                                  | Mechanism                                                                                                                                                                                   |
+| ---------------------------------- | ---------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Dark Treasury: Private Payouts** | Next milestone   | DAO payroll, yield distribution, and airdrop claims that never doxx contributors | Protocol pre-approves `AncileRouter`; contributors submit World ID proof to CRE; CRE verifies + routes claim directly into a derived stealth address: contributor graph permanently private |
+| **Yield-bearing Stealth Wallets**  | Requires vault   | Eliminates dead capital in stealth addresses                                     | `SWAP` action deposits incoming tokens directly into ERC-4626 vaults (sDAI, aUSDC) in the same atomic transaction                                                                           |
+| **Sanctioned-Address Firewall**    | CRE workflow     | Institutional compliance without custodianship                                   | Chainalysis/TRM API call inside the CRE before execution: compliance off-chain, enforcement on-chain                                                                                        |
+| **Private Auction Settlements**    | Requires vault   | MEV-free sealed-bid auctions                                                     | Bids matched entirely inside the TEE and settled atomically to ghost wallets: zero front-running by design                                                                                  |
+| **Cross-chain Private Transfers**  | CRE workflow     | Privacy across chains from a single signature                                    | CCIP integration in the CRE workflow: private stealth transfer across any supported chain                                                                                                   |
+| **Shielded Governance**            | CRE workflow     | Anonymous on-chain voting                                                        | Votes cast from stealth addresses with World ID uniqueness: one human, one vote, zero doxx                                                                                                  |
+| **Private NFT Sales**              | Router extension | ERC-721 privacy                                                                  | ERC-721 + ERC-20 pulled and routed atomically: NFT sale with no buyer-seller link                                                                                                           |
+
 
 The architectural commitment to **stateless, non-custodial routing from day one** means every extension above is purely additive. New capability = new `ActionType` + new CRE workflow. The existing proxy address and security model stay unchanged.
 
@@ -199,25 +210,29 @@ The architectural commitment to **stateless, non-custodial routing from day one*
 
 ## Standards Implemented
 
-| Standard | Role in Ancile |
-|---|---|
-| [ERC-5564](https://eips.ethereum.org/EIPS/eip-5564) | Stealth address derivation, 1-byte view tag scanning, Announcement events |
+
+| Standard                                            | Role in Ancile                                                                    |
+| --------------------------------------------------- | --------------------------------------------------------------------------------- |
+| [ERC-5564](https://eips.ethereum.org/EIPS/eip-5564) | Stealth address derivation, 1-byte view tag scanning, Announcement events         |
 | [ERC-6538](https://eips.ethereum.org/EIPS/eip-6538) | On-chain stealth meta-address registry: receivers register their public keys here |
-| [EIP-2612](https://eips.ethereum.org/EIPS/eip-2612) | Gasless permit-based token approvals: every action is signature-only |
-| [EIP-712](https://eips.ethereum.org/EIPS/eip-712) | Typed structured data signing for all permits and intent hashes |
-| [ERC-1967](https://eips.ethereum.org/EIPS/eip-1967) | UUPS upgradeable proxy: logic upgradeable by owner, storage slot standardized |
-| [ERC-4626](https://eips.ethereum.org/EIPS/eip-4626) | Yield vault integration: dead capital elimination (roadmap) |
+| [EIP-2612](https://eips.ethereum.org/EIPS/eip-2612) | Gasless permit-based token approvals: every action is signature-only              |
+| [EIP-712](https://eips.ethereum.org/EIPS/eip-712)   | Typed structured data signing for all permits and intent hashes                   |
+| [ERC-1967](https://eips.ethereum.org/EIPS/eip-1967) | UUPS upgradeable proxy: logic upgradeable by owner, storage slot standardized     |
+| [ERC-4626](https://eips.ethereum.org/EIPS/eip-4626) | Yield vault integration: dead capital elimination (roadmap)                       |
+
 
 ## Technology Stack
 
-| Layer | Technology |
-|---|---|
-| Smart Contracts | Solidity 0.8.28, OpenZeppelin UUPS, Hardhat v3 |
+
+| Layer                   | Technology                                                |
+| ----------------------- | --------------------------------------------------------- |
+| Smart Contracts         | Solidity 0.8.28, OpenZeppelin UUPS, Hardhat v3            |
 | Off-chain Orchestration | Chainlink CRE (Trusted Execution Environment), TypeScript |
-| Privacy Primitive | ERC-5564 secp256k1 ECDH stealth address derivation |
-| Sybil Resistance | World ID 4.0 (Semaphore ZK proofs), IDKit Core v4 |
-| Chain | Base Sepolia (testnet) |
-| Transaction Signing | viem, ethers.js v6 |
+| Privacy Primitive       | ERC-5564 secp256k1 ECDH stealth address derivation        |
+| Sybil Resistance        | World ID 4.0 (Semaphore ZK proofs), IDKit Core v4         |
+| Chain                   | Base Sepolia (testnet)                                    |
+| Transaction Signing     | viem, ethers.js v6                                        |
+
 
 ---
 

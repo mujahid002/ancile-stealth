@@ -108,7 +108,7 @@ IERC6538Registry public immutable registry;
 | `NONE` | No compliance requirement: anyone can send |
 | `WORLD_ID_REQUIRED` | Sender must present a valid World ID ZK proof to the CRE |
 
-Roadmap: Include ZK, social verifications and passport.xyz integration.
+Roadmap: Include ZK, social verifications, passport.xyz and ACE integration.
 
 ### Action Payloads (ABI-encoded inside `report`)
 
