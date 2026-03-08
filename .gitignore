@@ -2,4 +2,4 @@
 */.env
 
 /.vscode
-/.cursor
+/node_modules

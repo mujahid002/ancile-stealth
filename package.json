@@ -1,0 +1,39 @@
+{
+  "name": "ancile-cre-stealth",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "serve-rp": "npx tsx serve-rp-signature.ts",
+    "world-id-generator": "npx serve .",
+    "bob-setup": "npx tsx p2p-scripts/bob/bob-setup.ts",
+    "ancile-bob-setup": "cre workflow simulate ./p2p-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload \"$(cat p2p-scripts/bob/bob-latest-payload.json)\" --broadcast",
+    "alice-p2p-dispatch": "npx tsx p2p-scripts/alice/alice-dispatch.ts",
+    "ancile-transfer-alice-to-bob": "cre workflow simulate ./p2p-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload \"$(cat p2p-scripts/alice/alice-latest-payload.json)\" --broadcast",
+    "bob-p2p-sweep": "npx tsx p2p-scripts/bob/bob-sweep.ts",
+    "ancile-p2p-bob-sweep": "cre workflow simulate ./p2p-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload \"$(cat p2p-scripts/bob/bob-sweep-payload.json)\" --broadcast",
+    
+    "alice-setup": "npx tsx otc-scripts/alice/alice-setup.ts",
+    "ancile-alice-setup": "cre workflow simulate ./p2p-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload \"$(cat otc-scripts/alice/alice-latest-payload.json)\" --broadcast",
+    
+    "alice-otc-ask": "npx tsx otc-scripts/alice/create-otc-ask.ts",
+    "bob-otc-bid": "npx tsx otc-scripts/bob/create-otc-bid.ts",
+    "ancile-bundle-otc": "npx tsx otc-scripts/bundle-otc.ts",
+    "ancile-otc": "cre workflow simulate ./otc-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload \"$(cat ./otc-workflow/master-otc.json)\" --broadcast",
+    
+    "alice-otc-sweep-intent": "npx tsx otc-scripts/alice/create-sweep-intent.ts",
+    "bob-otc-sweep-intent": "npx tsx otc-scripts/bob/create-sweep-intent.ts",
+    "ancile-bundle-sweeps": "npx tsx otc-scripts/bundle-sweeps.ts",
+    "ancile-otc-sweep": "cre workflow simulate ./otc-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload \"$(cat ./otc-workflow/master-sweep.json)\" --broadcast"
+
+  },
+  "dependencies": {
+    "@worldcoin/idkit-core": "^4.0.9",
+    "qrcode-terminal": "^0.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0",
+    "@types/qrcode-terminal": "^0.12.2"
+  }
+}
