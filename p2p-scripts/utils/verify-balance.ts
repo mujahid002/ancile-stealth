@@ -1,10 +1,10 @@
 import { ethers } from "ethers";
-import config from "../../config.p2p.json";
+import config from "../../config.json";
 
 
 async function verifyAliceBalance() {
     const provider = new ethers.providers.JsonRpcProvider(config.BASE_SEPOLIA_RPC_URL);
-    const tokenContract = new ethers.Contract(config.TOKEN_ADDRESS, [
+    const tokenContract = new ethers.Contract(config.MOCK_USDC_ADDRESS, [
         "function balanceOf(address account) external view returns (uint256)"
     ], provider);
     const balance = await tokenContract.balanceOf(config.ALICE_PUBLIC_ADDRESS as `0x${string}`);

@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import config from "../../config.p2p.json";
+import config from "../../config.json";
 
 const ERC6538_REGISTRY_ADDRESS = config.REGISTRY_ADDRESS as `0x${string}`;
 
@@ -17,7 +17,7 @@ async function verifyBobOnChainRegistration() {
 
     // Bob's main address that we used in the payload
     const bobAddress = config.BOB_PUBLIC_ADDRESS as `0x${string}`;
-    const schemeId = config.CURRENT_SCHEME_ID_FOR_BOB;
+    const schemeId = config.ANCILE_SCHEME_ID_FOR_ACCOUNT_SETUP;
 
     console.log(`🔍 Querying Base Sepolia for Bob's Meta-Address...`);
     console.log(`👤 Address: ${bobAddress}`);
