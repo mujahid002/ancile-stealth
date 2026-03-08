@@ -1,28 +1,40 @@
 import * as fs from "fs";
 import * as path from "path";
-import * as crypto from "crypto"; 
 
-function generateEntropy() {
-    return "0x" + crypto.randomBytes(32).toString("hex");
-}
+async function bundleShardedOTC() {
+    console.log("📦 Bundling Sharded OTC Intents...");
 
-async function bundle() {
-    console.log("📦 Bundling OTC Intents & Generating Entropy...");
-
+    // 1. Resolve paths to the generated JSON intents
     const alicePath = path.resolve(__dirname, "alice/alice-otc-intent.json");
     const bobPath = path.resolve(__dirname, "bob/bob-otc-intent.json");
 
-    const alicePayload = JSON.parse(fs.readFileSync(alicePath, "utf-8"));
-    const bobPayload = JSON.parse(fs.readFileSync(bobPath, "utf-8"));
+    // Ensure the files actually exist before bundling
+    if (!fs.existsSync(alicePath)) {
+        throw new Error("❌ Alice's intent not found! Run 'create-otc-ask.ts' first.");
+    }
+    if (!fs.existsSync(bobPath)) {
+        throw new Error("❌ Bob's intent not found! Run 'create-otc-bid.ts' first.");
+    }
 
+    // 2. Read the intents
+    const aliceIntent = JSON.parse(fs.readFileSync(alicePath, "utf-8"));
+    const bobIntent = JSON.parse(fs.readFileSync(bobPath, "utf-8"));
+
+    // 3. Construct the Master Payload
     const masterPayload = {
-        payloads: [alicePayload, bobPayload],
-        entropyA: generateEntropy(), // Ephemeral Private Key for Alice's destination
-        entropyB: generateEntropy()  // Ephemeral Private Key for Bob's destination
+        payloads: [
+            aliceIntent,
+            bobIntent
+        ]
     };
 
-    fs.writeFileSync(path.resolve(__dirname, "../otc-workflow/master-otc.json"), JSON.stringify(masterPayload, null, 2));
-    console.log("✅ Saved to otc-workflow/master-otc.json with Entropy injected!");
+    // 4. Save to master-otc.json for the Chainlink CRE (in the correct folder!)
+    const masterPath = path.resolve(__dirname, "../otc-workflow/master-otc.json");
+    fs.writeFileSync(masterPath, JSON.stringify(masterPayload, null, 2));
+
+    console.log(`✅ Master payload successfully bundled at: ${masterPath}`);
+    console.log(`\n🎉 You are ready to execute the Darkpool!`);
+    console.log(`➡️ Run: cre workflow simulate ./otc-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload "$(cat ./otc-workflow/master-otc.json)" --broadcast`);
 }
 
-bundle().catch(console.error);
+bundleShardedOTC().catch(console.error);
