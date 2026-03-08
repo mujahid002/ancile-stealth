@@ -74,8 +74,9 @@ The CRE verifies Alice's ZK proof inside the TEE, computes a fresh one-time stea
 When Bob wants to withdraw, he signs a sweep intent using only the stealth private key. The CRE relays the transaction on his behalf, paying gas. **Zero ETH ever touches the stealth address.** The transaction graph is cryptographically unbreakable.
 
 **Live testnet proof:**
-- [P2P Transfer](https://sepolia.basescan.org/tx/0x243213b3e874e0cdd377c81471b1fb37cb0259d61c0984397c70dc7f2993ea3c): Alice → Bob's stealth address via Permit
-- [Gasless Sweep](https://sepolia.basescan.org/tx/0xa748ffb7181d0fb08707800aedc7f55116a54c0e8b18434a8456564bd2642693): Bob exits stealth address to destination, zero ETH used
+- [P2P Bob Registration](https://sepolia.basescan.org/tx/0x7cd762efe79255343fabaa8cd0a5946a3e74f6bb7ae3e76221cc039f82aa6a2f): Bob registers Meta-Address + compliance rule
+- [P2P Transfer](https://sepolia.basescan.org/tx/0xcf2e6670a931d237c15837f2819e15c0bfa14be1d96162c8e27f1d055b34b5f8): Alice → Bob's stealth address via Permit
+- [P2P Sweep](https://sepolia.basescan.org/tx/0xcf4691a2b9bb83b843781aa70c84849df8ebc5e4c89ed9c0dc8a78fe454df59c): Bob gasless exit from stealth address, zero ETH used
 
 ---
 
@@ -95,8 +96,10 @@ Both parties generate **5 ephemeral ghost wallets each** and sign EIP-2612 Permi
 The entire settlement executes in **one atomic transaction**. There is no public mempool exposure: the matching is private inside the TEE. **Front-running is structurally impossible** because by the time the transaction hits the chain, it is already finalized. MEV bots see a completed settlement, not a pending intent. The on-chain result: zero link between Alice, Bob, and the receiving ghost wallets.
 
 **Live testnet proof:**
+- [OTC Alice Registration](https://sepolia.basescan.org/tx/0x5541c0992f4ebd5a7b77a29d6d00621edaadcaeabe92a626ab4409d08b2eceb0): Alice registers Meta-Address + compliance rule
 - [Standard 1-to-1 OTC](https://sepolia.basescan.org/tx/0x994697d4039a357cb789395bdb1318dd856bd9329a8a6ad912924d8a696593aa)
-- [Sharded Mega-Batch OTC](https://sepolia.basescan.org/tx/0xceeec3cbad1c7cbf8c096c1707fe62fdef70514d150af6e143196cae1b468077)
+- [Sharded Mega-Batch OTC](https://sepolia.basescan.org/tx/0x160b597afc57bee11495fa44d3c70bfb57e7b21efdc1ffadaf7b94b5f7414373)
+- [OTC Sharded Batch-Sweep](https://sepolia.basescan.org/tx/0xf60a779f2f325d6e89534104a88259c6bb3c6ee710ede559d6127ea1d2f4dfe8)
 - [Ghost Wallet Sweep 1](https://sepolia.basescan.org/tx/0xd38c3dd8b6e4566811f4ee889356fd23ba5b4fdf1885c136439da0c0a5eb31c8)
 - [Ghost Wallet Sweep 2](https://sepolia.basescan.org/tx/0x0b434143601890edc2704b4f533a5d8da419b06533463f27adde2f4d7d3ce263)
 

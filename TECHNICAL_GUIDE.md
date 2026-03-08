@@ -641,15 +641,15 @@ All contracts deployed and verified on Base Sepolia.
 
 | Action | Transaction Hash |
 | --- | --- |
-| P2P Bob Registration | [`0x7cd7...6a2f`](https://www.google.com/search?q=%5Bhttps://sepolia.basescan.org/tx/0x7cd762efe79255343fabaa8cd0a5946a3e74f6bb7ae3e76221cc039f82aa6a2f%5D(https://sepolia.basescan.org/tx/0x7cd762efe79255343fabaa8cd0a5946a3e74f6bb7ae3e76221cc039f82aa6a2f)) |
-| P2P Transfer (Alice -> Bob stealth) | [`0xcf2e...b5f8`](https://www.google.com/search?q=%5Bhttps://sepolia.basescan.org/tx/0xcf2e6670a931d237c15837f2819e15c0bfa14be1d96162c8e27f1d055b34b5f8%5D(https://sepolia.basescan.org/tx/0xcf2e6670a931d237c15837f2819e15c0bfa14be1d96162c8e27f1d055b34b5f8)) |
-| P2P Sweep (Bob gasless exit) | [`0xcf46...f59c`](https://www.google.com/search?q=%5Bhttps://sepolia.basescan.org/tx/0xcf4691a2b9bb83b843781aa70c84849df8ebc5e4c89ed9c0dc8a78fe454df59c%5D(https://sepolia.basescan.org/tx/0xcf4691a2b9bb83b843781aa70c84849df8ebc5e4c89ed9c0dc8a78fe454df59c)) |
-| OTC Alice Registration | [`0x5541...ceb0`](https://www.google.com/search?q=%5Bhttps://sepolia.basescan.org/tx/0x5541c0992f4ebd5a7b77a29d6d00621edaadcaeabe92a626ab4409d08b2eceb0%5D(https://sepolia.basescan.org/tx/0x5541c0992f4ebd5a7b77a29d6d00621edaadcaeabe92a626ab4409d08b2eceb0)) |
-| OTC Direct 1-to-1 | [`0x9946...93aa`](https://www.google.com/search?q=%5Bhttps://sepolia.basescan.org/tx/0x994697d4039a357cb789395bdb1318dd856bd9329a8a6ad912924d8a696593aa%5D(https://sepolia.basescan.org/tx/0x994697d4039a357cb789395bdb1318dd856bd9329a8a6ad912924d8a696593aa)) |
-| OTC Sharded Mega-Batch | [`0x160b...4373`](https://www.google.com/search?q=%5Bhttps://sepolia.basescan.org/tx/0x160b597afc57bee11495fa44d3c70bfb57e7b21efdc1ffadaf7b94b5f7414373%5D(https://sepolia.basescan.org/tx/0x160b597afc57bee11495fa44d3c70bfb57e7b21efdc1ffadaf7b94b5f7414373)) |
-| OTC Sharded Batch-Sweep | [`0xf60a...dfe8`](https://www.google.com/search?q=%5Bhttps://sepolia.basescan.org/tx/0xf60a779f2f325d6e89534104a88259c6bb3c6ee710ede559d6127ea1d2f4dfe8%5D(https://sepolia.basescan.org/tx/0xf60a779f2f325d6e89534104a88259c6bb3c6ee710ede559d6127ea1d2f4dfe8)) |
-| Ghost Wallet Sweep 1 | [`0xd38c...31c8`](https://www.google.com/search?q=%5Bhttps://sepolia.basescan.org/tx/0xd38c3dd8b6e4566811f4ee889356fd23ba5b4fdf1885c136439da0c0a5eb31c8%5D(https://sepolia.basescan.org/tx/0xd38c3dd8b6e4566811f4ee889356fd23ba5b4fdf1885c136439da0c0a5eb31c8)) |
-| Ghost Wallet Sweep 2 | [`0x0b43...e263`](https://www.google.com/search?q=%5Bhttps://sepolia.basescan.org/tx/0x0b434143601890edc2704b4f533a5d8da419b06533463f27adde2f4d7d3ce263%5D(https://sepolia.basescan.org/tx/0x0b434143601890edc2704b4f533a5d8da419b06533463f27adde2f4d7d3ce263)) |
+| P2P Bob Registration | [`0x7cd7...6a2f`](https://sepolia.basescan.org/tx/0x7cd762efe79255343fabaa8cd0a5946a3e74f6bb7ae3e76221cc039f82aa6a2f) |
+| P2P Transfer (Alice -> Bob stealth) | [`0xcf2e...b5f8`](https://sepolia.basescan.org/tx/0xcf2e6670a931d237c15837f2819e15c0bfa14be1d96162c8e27f1d055b34b5f8) |
+| P2P Sweep (Bob gasless exit) | [`0xcf46...f59c`](https://sepolia.basescan.org/tx/0xcf4691a2b9bb83b843781aa70c84849df8ebc5e4c89ed9c0dc8a78fe454df59c) |
+| OTC Alice Registration | [`0x5541...ceb0`](https://sepolia.basescan.org/tx/0x5541c0992f4ebd5a7b77a29d6d00621edaadcaeabe92a626ab4409d08b2eceb0) |
+| OTC Direct 1-to-1 | [`0x9946...93aa`](https://sepolia.basescan.org/tx/0x994697d4039a357cb789395bdb1318dd856bd9329a8a6ad912924d8a696593aa) |
+| OTC Sharded Mega-Batch | [`0x160b...4373`](https://sepolia.basescan.org/tx/0x160b597afc57bee11495fa44d3c70bfb57e7b21efdc1ffadaf7b94b5f7414373) |
+| OTC Sharded Batch-Sweep | [`0xf60a...dfe8`](https://sepolia.basescan.org/tx/0xf60a779f2f325d6e89534104a88259c6bb3c6ee710ede559d6127ea1d2f4dfe8) |
+| Ghost Wallet Sweep 1 | [`0xd38c...31c8`](https://sepolia.basescan.org/tx/0xd38c3dd8b6e4566811f4ee889356fd23ba5b4fdf1885c136439da0c0a5eb31c8) |
+| Ghost Wallet Sweep 2 | [`0x0b43...e263`](https://sepolia.basescan.org/tx/0x0b434143601890edc2704b4f533a5d8da419b06533463f27adde2f4d7d3ce263) |
 
 ---
 
