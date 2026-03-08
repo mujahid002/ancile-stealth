@@ -1,10 +1,10 @@
-import { createPublicClient, createWalletClient, http, parseAbi, encodePacked, keccak256 } from "viem";
+import { createPublicClient, createWalletClient, http, parseAbi, encodePacked, keccak256, concatHex, toHex, stringToBytes } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { baseSepolia } from "viem/chains";
 import { computeStealthKey } from "@scopelift/stealth-address-sdk";
 import fs from "fs";
 import * as path from "path";
-import config from "../../config.p2p.json";
+import config from "../../config.json";
 
 const erc20Abi = parseAbi(["function nonces(address owner) view returns (uint256)"]);
 const routerAbi = parseAbi(["function routerNonces(address owner) external view returns (uint256)"]);
@@ -12,14 +12,24 @@ const routerAbi = parseAbi(["function routerNonces(address owner) external view 
 async function runBobSweep() {
     console.log("🧹 Initializing Bob's Gasless Sweep Engine...");
 
+    const bobAccount = privateKeyToAccount(config.BOB_PRIVATE_KEY as `0x${string}`);
+    const bobWallet = createWalletClient({ account: bobAccount, chain: baseSepolia, transport: http(config.BASE_SEPOLIA_RPC_URL) });
+
+    const staticMessage = "Sign this message to generate your Ancile Privacy Keys.";
+    const signedMessage = await bobWallet.signMessage({ message: staticMessage });
+
+    const spendingPrivateKey = keccak256(signedMessage);
+    const viewingPrivateKey = keccak256(concatHex([spendingPrivateKey, toHex(stringToBytes("viewing"))]));
+    console.log("🔑 Keys derived deterministically from Bob's wallet signature.");
+
     const aliceData = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../alice/alice-latest-payload.json"), "utf-8")).data;
     const stealthPrivateKeyHex = computeStealthKey({
         ephemeralPublicKey: aliceData.ephemeralPubKey,
-        schemeId: 1 as any, // 🌟 FIX: Added the missing schemeId!
-        viewingPrivateKey: config.BOB_VIEWING_KEY as `0x${string}`,  
-        spendingPrivateKey: config.BOB_SPENDING_KEY as `0x${string}`
+        schemeId: 1 as any,
+        viewingPrivateKey: viewingPrivateKey,
+        spendingPrivateKey: spendingPrivateKey
     });
-    
+
     const stealthAccount = privateKeyToAccount(stealthPrivateKeyHex as `0x${string}`);
     const rpcUrl = config.BASE_SEPOLIA_RPC_URL;
     const publicClient = createPublicClient({ chain: baseSepolia, transport: http(rpcUrl) });
@@ -32,12 +42,12 @@ async function runBobSweep() {
     // SIGNATURE 1: EIP-2612 PERMIT
     // ==========================================
     console.log("📝 Generating EIP-2612 Permit Signature (from Stealth Address)...");
-    const tokenNonce = await publicClient.readContract({ address: config.TOKEN_ADDRESS as `0x${string}`, abi: erc20Abi, functionName: 'nonces', args: [stealthAccount.address] });
+    const tokenNonce = await publicClient.readContract({ address: config.MOCK_USDC_ADDRESS as `0x${string}`, abi: erc20Abi, functionName: 'nonces', args: [stealthAccount.address] });
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
 
     const permitSignature = await stealthWalletClient.signTypedData({
         account: stealthAccount,
-        domain: { name: "MockUSDC", version: "1", chainId: baseSepolia.id, verifyingContract: config.TOKEN_ADDRESS as `0x${string}` },
+        domain: { name: "MockUSDC", version: "1", chainId: baseSepolia.id, verifyingContract: config.MOCK_USDC_ADDRESS as `0x${string}` },
         types: {
             Permit: [
                 { name: "owner", type: "address" }, { name: "spender", type: "address" },
@@ -67,13 +77,14 @@ async function runBobSweep() {
     const sweepPayload = {
         action: 3,
         data: {
-            token: config.TOKEN_ADDRESS, amount: amountToSweep.toString(), stealthAddress: stealthAccount.address, destination: destinationWallet,
+            token: config.MOCK_USDC_ADDRESS, amount: amountToSweep.toString(), stealthAddress: stealthAccount.address, destination: destinationWallet,
             permit: { deadline: deadline.toString(), ...splitSig(permitSignature) },
             intent: { ...splitSig(intentSignature) }
         }
     };
 
     fs.writeFileSync(path.resolve(__dirname, "bob-sweep-payload.json"), JSON.stringify(sweepPayload, null, 2));
+    fs.writeFileSync(path.resolve(__dirname, "bob-payload-history.json"), JSON.stringify(sweepPayload, null, 2));
     console.log(`✅ Success! Bob's Sweep Payload saved! Ready for CRE relay.`);
 }
 

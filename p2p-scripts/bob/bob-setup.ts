@@ -5,7 +5,7 @@ import { ethers } from "ethers";
 import * as fs from "fs";
 import * as path from "path";
 
-import config from "../../config.p2p.json";
+import config from "../../config.json";
 
 const ERC6538_REGISTRY_ADDRESS = config.REGISTRY_ADDRESS as `0x${string}`;
 
@@ -19,7 +19,7 @@ const registryAbi = [
     }
 ] as const;
 
-const currentSchemeIdForBob = config.CURRENT_SCHEME_ID_FOR_BOB;
+const currentSchemeIdForBob = config.ANCILE_SCHEME_ID_FOR_ACCOUNT_SETUP;
 
 async function bobBackendSetup() {
     console.log("⚙️  Initializing Bob's Privacy Setup...");
@@ -74,33 +74,34 @@ async function bobBackendSetup() {
         }
     });
 
-    // 🌟 Load World ID proof for CRE API Verification
-    const proofPath = fs.existsSync(path.resolve(__dirname, "world-id-proof.json"))
-        ? path.resolve(__dirname, "world-id-proof.json")
-        : path.resolve(__dirname, "../world-id-proof.json");
-    
+    const addressProofPath = path.resolve(__dirname, `../../${account.address}-world-proof.json`);
+    const genericProofPath = path.resolve(__dirname, "../../world-id-proof.json");
+    const proofPath = fs.existsSync(addressProofPath) ? addressProofPath : genericProofPath;
+
     if (!fs.existsSync(proofPath)) {
-        throw new Error("❌ Missing world-id-proof.json! Bob must complete World ID verification first.");
+        throw new Error(`❌ Missing world-id-proof.json! Bob must complete World ID verification first. Expected: ${addressProofPath}`);
     }
-    
+
     const worldIdProof = JSON.parse(fs.readFileSync(proofPath, "utf-8"));
-    console.log("🛡️  World ID Proof loaded for Bob's registration payload.");
+    console.log(`🛡️  World ID Proof loaded from: ${path.basename(proofPath)}`);
 
     // Final Payload
     const newPayload = {
-        action: 1, // Wrap it properly for main.ts
+        action: 1,
         data: {
             registrant: account.address,
             schemeId: currentSchemeIdForBob,
             stealthMetaAddressRaw: stealthMetaAddressRaw,
             signature: signature,
             rules: { requiresWorldID: true },
-            worldIdProof: worldIdProof // 🌟 Pass to CRE
+            worldIdProof: worldIdProof
         }
     };
 
     const latestPath = path.resolve(__dirname, "bob-latest-payload.json");
+    const historyPath = path.resolve(__dirname, "bob-payload-history.json");
     fs.writeFileSync(latestPath, JSON.stringify(newPayload, null, 2));
+    fs.writeFileSync(historyPath, JSON.stringify(newPayload, null, 2));
 
     console.log(`✅ Saved Payload to bob-latest-payload.json ready for CRE dispatch!`);
 }

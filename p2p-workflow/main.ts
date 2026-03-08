@@ -53,7 +53,6 @@ const onAncileRoute = async (runtime: Runtime<Config>, payload: HTTPPayload): Pr
     runtime.log(`💸 Compiling P2P DISPATCH to Stealth Address: ${data.stealthAddress}`);
     const amount = BigInt(data.amount);
 
-    // 🌟 FIXED: Using explicit ABI object instead of string parser
     const p2pAbi = [{
       type: "tuple",
       components: [

@@ -1,0 +1,10 @@
+{
+  "evms": [{
+    "receiverAddress": "0x81c693D8Df38BfCda1a578a1733E822C12f58d2f",
+    "chainSelectorName": "ethereum-testnet-sepolia-base-1",
+    "gasLimit": "500000",
+    "isTestnet": true
+  }],
+  "rpId": "rp_8e802254f0934bb5",
+  "worldIdVerifyUrl": "https://developer.world.org/api/v4/verify/rp_8e802254f0934bb5"
+}
